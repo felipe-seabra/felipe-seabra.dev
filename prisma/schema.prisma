@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Admin {
+  user_id    String   @id @map("user_id") @db.Uuid
+  created_at DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("admins")
+}
+
+model Project {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String   @unique
+  title       String
+  category    String   @default("")
+  description String   @default("")
+  stack       String[] @default([])
+  href        String   @default("#contact")
+  github_url  String?  @map("github_url")
+  image_url   String?  @map("image_url")
+  featured    Boolean  @default(false)
+  published   Boolean  @default(false)
+  sort_order  Int      @default(0) @map("sort_order")
+  created_at  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([published, featured, sort_order], map: "projects_public_order_idx")
+  @@map("projects")
+}
+
+model TimelineEntry {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  locale     String   @default("en")
+  chapter    String
+  period     String
+  title      String
+  body       String   @default("")
+  tags       String[] @default([])
+  published  Boolean  @default(true)
+  sort_order Int      @default(0) @map("sort_order")
+  created_at DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([published, sort_order], map: "timeline_public_order_idx")
+  @@index([locale, published, sort_order], map: "timeline_locale_order_idx")
+  @@map("timeline_entries")
+}
+
+model SiteContent {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  locale     String
+  section    String
+  field      String
+  value      String   @default("")
+  updated_at DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([locale, section, field], map: "site_content_locale_section_field_key")
+  @@map("site_content")
+}
