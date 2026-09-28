@@ -1,0 +1,15 @@
+# Felipe Seabra
+
+Personal portfolio for Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.
+
+## Primary page
+
+- https://felipeseabra.dev/ — portfolio, career timeline, selected projects, capabilities and contact.
+
+## Technology
+
+Next.js, React, TypeScript, Tailwind CSS, Framer Motion, Lenis and Supabase.
+
+## Contact
+
+hello@felipeseabra.dev

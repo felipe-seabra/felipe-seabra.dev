@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="title desc">
+  <title id="title">Felipe Seabra illustrated avatar</title>
+  <desc id="desc">Illustrated developer avatar with beard, headphones and hoodie.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#171717"/>
+      <stop offset="1" stop-color="#0b0b0b"/>
+    </linearGradient>
+    <linearGradient id="hood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#343434"/>
+      <stop offset="1" stop-color="#141414"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" rx="72" fill="url(#bg)"/>
+  <circle cx="300" cy="235" r="150" fill="#d39a73"/>
+  <path d="M170 220c-2-115 61-169 130-169 78 0 131 60 128 161-34-42-77-61-133-55-44 5-83 24-125 63Z" fill="#211c19"/>
+  <path d="M180 270c8 86 57 143 120 143s112-57 120-143c-27 25-55 39-87 42-54 5-103-9-153-42Z" fill="#302925"/>
+  <path d="M225 248c19-14 38-14 57 0M318 248c19-14 38-14 57 0" fill="none" stroke="#161616" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="250" cy="273" r="8" fill="#111"/>
+  <circle cx="350" cy="273" r="8" fill="#111"/>
+  <path d="M270 319c18 10 42 10 60 0" fill="none" stroke="#171717" stroke-width="9" stroke-linecap="round"/>
+  <path d="M162 216c-26 8-36 31-30 63 5 28 20 45 42 45M438 216c26 8 36 31 30 63-5 28-20 45-42 45" fill="none" stroke="#f5f5f0" stroke-width="18" stroke-linecap="round"/>
+  <path d="M151 205c11-78 70-122 149-122s138 44 149 122" fill="none" stroke="#f5f5f0" stroke-width="18" stroke-linecap="round"/>
+  <rect x="126" y="238" width="49" height="91" rx="20" fill="#1b1b1b"/>
+  <rect x="425" y="238" width="49" height="91" rx="20" fill="#1b1b1b"/>
+  <path d="M116 420c45-51 95-72 184-72s139 21 184 72v180H116V420Z" fill="url(#hood)"/>
+  <path d="M235 384c19 25 42 38 65 38s46-13 65-38l42 44c-30 41-66 61-107 61s-77-20-107-61l42-44Z" fill="#262626"/>
+  <path d="M216 445c28 25 56 37 84 37s56-12 84-37" fill="none" stroke="#090909" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="470" cy="470" r="8" fill="#5ee38b"/>
+</svg>
