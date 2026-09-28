@@ -1,6 +1,6 @@
 "use client";
 
-import {FormEvent,useEffect,useState} from "react";
+import {FormEvent,useEffect,useMemo,useState} from "react";
 import {ArrowLeft,Check,ExternalLink,LayoutDashboard,LogOut,Plus,Save,Trash2} from "lucide-react";
 import Link from "next/link";
 import {createClient} from "@/lib/supabase/client";
@@ -35,7 +35,7 @@ const emptyProject:Omit<Project,"id">={
 };
 
 export default function DashboardPage(){
-  const supabase=createClient();
+  const supabase=useMemo(()=>createClient(),[]);
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
   const [userEmail,setUserEmail]=useState<string|null>(null);
