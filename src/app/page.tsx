@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
-import { ArrowDown, ArrowUpRight, Github, Languages, Linkedin, Menu, Moon, Sun, X } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Github, Linkedin, Menu, Moon, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { copy, projects, type Locale } from "@/lib/i18n";
 import { ScrollProgress } from "@/components/portfolio/ScrollProgress";
