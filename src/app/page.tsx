@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Github, Languages, Linkedin, Menu, Moon, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { copy, projects, type Locale } from "@/lib/i18n";
@@ -23,6 +23,30 @@ type ProjectItem = {
   sort_order?: number;
 };
 type TimelineItem = { chapter: string; period: string; title: string; body: string; tags: string[] };
+
+function InteractiveCursor() {
+  const x = useMotionValue(-200);
+  const y = useMotionValue(-200);
+  const springX = useSpring(x, { stiffness: 120, damping: 22, mass: 0.5 });
+  const springY = useSpring(y, { stiffness: 120, damping: 22, mass: 0.5 });
+
+  useEffect(() => {
+    const move = (event: PointerEvent) => {
+      x.set(event.clientX);
+      y.set(event.clientY);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => window.removeEventListener("pointermove", move);
+  }, [x, y]);
+
+  return (
+    <motion.div
+      aria-hidden="true"
+      style={{ x: springX, y: springY }}
+      className="pointer-events-none fixed left-0 top-0 z-40 hidden h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)] opacity-[.07] blur-3xl md:block"
+    />
+  );
+}
 
 function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   return <motion.div className={className} initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: .7, delay, ease: [.22, 1, .36, 1] }}>{children}</motion.div>;
@@ -47,7 +71,7 @@ function Avatar() {
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("en");
   const [theme, setTheme] = useState<Theme>("dark");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);\n  const [showTop, setShowTop] = useState(false);
   const [projectItems, setProjectItems] = useState<ProjectItem[]>(projects.map((p, i) => ({ ...p, number: p.number, sort_order: i })));
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [cms, setCms] = useState<Record<string, string>>({});
@@ -99,6 +123,15 @@ export default function Home() {
     return () => { active = false };
   }, [locale, theme]);
 
+  useEffect(() => {
+    const handleScroll = () => setShowTop(window.scrollY > 700);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
   const toggleLocale = () => setLocale(v => v === "en" ? "pt" : "en");
   const toggleTheme = () => setTheme(v => v === "dark" ? "light" : "dark");
   const timeline = timelineItems.length ? timelineItems : t.timeline.entries;
@@ -106,7 +139,7 @@ export default function Home() {
   const socialLinks = [social.github ? { label: "GitHub", href: social.github, icon: Github } : null, social.linkedin ? { label: "LinkedIn", href: social.linkedin, icon: Linkedin } : null].filter(Boolean) as { label: string; href: string; icon: typeof Github }[];
 
   return <main id="top" className="overflow-hidden bg-[var(--bg)] text-[var(--fg)] transition-colors duration-500">
-    <SmoothScroll /><ScrollProgress />
+    <SmoothScroll /><ScrollProgress /><InteractiveCursor />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "ProfilePage", "mainEntity": { "@type": "Person", "@id": "https://felipeseabra.com.br/#person", "name": "Felipe Seabra", "url": "https://felipeseabra.com.br/", "jobTitle": "Front-End focused Full-Stack Developer", "image": "https://felipeseabra.com.br/avatar.svg", "address": { "@type": "PostalAddress", "addressLocality": "Dublin", "addressCountry": "IE" }, "sameAs": socialLinks.map(link => link.href) } }) }} />
     <header className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-8">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between rounded-full border border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_78%,transparent)] px-4 py-3 backdrop-blur-xl md:px-5">
@@ -162,6 +195,24 @@ export default function Home() {
     <section className="px-5 pb-24 md:px-8 md:pb-36"><div className="mx-auto grid max-w-[1400px] gap-5 md:grid-cols-2 lg:grid-cols-4">{t.capabilities.map((skill, index) => <Reveal key={skill} delay={index * .04}><div className="border-t border-[var(--line)] pt-5"><span className="font-mono text-[10px] text-[var(--faint)]">0{index + 1}</span><p className="mt-7 text-lg text-[var(--muted)]">{cms[`capabilities.${index}`] ?? skill}</p></div></Reveal>)}</div></section>
 
     <section id="contact" className="relative border-t border-[var(--line)] px-5 py-28 md:px-8 md:py-44"><div className="glow absolute inset-0" /><div className="noise absolute inset-0 opacity-[.08]" /><div className="relative mx-auto max-w-[1400px]"><Reveal><span className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">{text("contact", "label", t.contact.label)}</span><h2 className="mt-8 max-w-6xl text-[13vw] font-medium leading-[.8] tracking-[-.09em] md:text-[9vw]">{text("contact", "title", t.contact.title)}</h2><p className="mt-10 max-w-xl text-base leading-7 text-[var(--muted)] md:text-lg">{text("contact", "body", t.contact.body)}</p></Reveal><Reveal delay={.08}><div className="mt-10 flex flex-wrap items-center gap-5"><a href={`mailto:${text("contact", "email", "hello@felipeseabra.com.br")}`} className="inline-flex items-center gap-3 text-xl transition-opacity hover:opacity-60 md:text-2xl">{text("contact", "cta", t.contact.cta)}<ArrowUpRight size={19} /></a>{socialLinks.map(link => { const Icon = link.icon; return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs"><Icon size={14} />{link.label}</a> })}</div></Reveal></div></section>
+
+    <AnimatePresence>
+      {showTop && (
+        <motion.button
+          type="button"
+          onClick={scrollToTop}
+          initial={{ opacity: 0, scale: 0.85, y: 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.85, y: 16 }}
+          whileHover={{ y: -4, scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label="Back to top"
+          className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)]/90 text-[var(--fg)] shadow-2xl backdrop-blur-xl transition-colors hover:border-[var(--fg)]"
+        >
+          <ArrowUpRight size={17} className="-rotate-45" />
+        </motion.button>
+      )}
+    </AnimatePresence>
 
     <footer className="border-t border-[var(--line)] px-5 py-7 md:px-8"><div className="mx-auto flex max-w-[1400px] flex-wrap justify-between gap-3 font-mono text-[10px] uppercase tracking-[.18em] text-[var(--faint)]"><span>© {new Date().getFullYear()} Felipe Seabra</span><span>{text("hero", "location", t.hero.location)}</span><span>Next.js / TypeScript</span></div></footer>
   </main>;
