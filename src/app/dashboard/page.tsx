@@ -5,11 +5,19 @@ import {ArrowLeft,Check,ExternalLink,LogOut,Save,Trash2} from "lucide-react";
 import Link from "next/link";
 import {copy,type Locale} from "@/lib/i18n";
 import {createClient} from "@/lib/supabase/client";
+import {
+  deleteProjectAction,
+  deleteTimelineAction,
+  getDashboardData,
+  saveContentAction,
+  saveProjectAction,
+  saveTimelineAction,
+  type DashboardContentRow as Row,
+  type DashboardProject as Project,
+  type DashboardTimeline as Timeline,
+} from "./actions";
 
-type Project={id:string;slug:string;title:string;category:string;description:string;stack:string[];href:string;github_url:string|null;image_url:string|null;featured:boolean;published:boolean;sort_order:number};
-type Timeline={id:string;locale:Locale;chapter:string;period:string;title:string;body:string;tags:string[];published:boolean;sort_order:number};
 type Tab="projects"|"timeline"|"content"|"settings";
-type Row={locale:Locale;section:string;field:string;value:string};
 
 const emptyProject:Omit<Project,"id">={slug:"",title:"",category:"",description:"",stack:[],href:"",github_url:"",image_url:null,featured:false,published:false,sort_order:0};
 const emptyTimeline:Omit<Timeline,"id">={locale:"en",chapter:"",period:"",title:"",body:"",tags:[],published:true,sort_order:0};
@@ -32,6 +40,7 @@ function fallback(locale:Locale,section:string,field:string){
   if(section==="work"){const values:Record<string,string>={label:t.work.label,title:t.work.title,intro:t.work.intro};return values[field]??"";}
   if(section==="about"){const values:Record<string,string>={label:t.about.label,title:t.about.title,body:t.about.body,experience:t.about.experience};return values[field]??"";}
   if(section==="contact"){const values:Record<string,string>={label:t.contact.label,title:t.contact.title,body:t.contact.body,cta:t.contact.cta,email:"hello@felipeseabra.com.br"};return values[field]??"";}
+  if(section==="social"){const values:Record<string,string>={github:"https://github.com/felipe-seabra",linkedin:"https://www.linkedin.com/in/felipe-seabra/"};return values[field]??"";}
   if(section==="seo")return field==="title"?"Felipe Seabra — Front-End Developer":"Portfolio and career timeline of Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.";
   return "";
 }
@@ -39,36 +48,138 @@ function fallback(locale:Locale,section:string,field:string){
 export default function DashboardPage(){
   const supabase=useMemo(()=>createClient(),[]);
   const[email,setEmail]=useState("");const[password,setPassword]=useState("");const[userEmail,setUserEmail]=useState<string|null>(null);
+  const[isAdmin,setIsAdmin]=useState(false);
   const[tab,setTab]=useState<Tab>("projects");const[locale,setLocale]=useState<Locale>("en");
   const[projects,setProjects]=useState<Project[]>([]);const[timeline,setTimeline]=useState<Timeline[]>([]);const[rows,setRows]=useState<Row[]>([]);
   const[editingProject,setEditingProject]=useState<Project|null>(null);const[projectForm,setProjectForm]=useState(emptyProject);
   const[editingTimeline,setEditingTimeline]=useState<Timeline|null>(null);const[timelineForm,setTimelineForm]=useState(emptyTimeline);
   const[status,setStatus]=useState("");const[loading,setLoading]=useState(()=>Boolean(supabase));
 
-  useEffect(()=>{if(!supabase)return;let active=true;const load=async()=>{const{data:{user}}=await supabase.auth.getUser();if(!active)return;setUserEmail(user?.email??null);if(user){const[{data:p},{data:t},{data:c}]=await Promise.all([supabase.from("projects").select("*").order("sort_order",{ascending:true}),supabase.from("timeline_entries").select("*").order("sort_order",{ascending:true}),supabase.from("site_content").select("*").eq("locale",locale)]);if(p)setProjects(p as Project[]);if(t)setTimeline(t as Timeline[]);if(c)setRows(c as Row[])}setLoading(false)};void load();return()=>{active=false}},[supabase,locale]);
+  useEffect(()=>{
+    if(!supabase)return;
+    let active=true;
+    const load=async()=>{
+      const{data:{user}}=await supabase.auth.getUser();
+      if(!active)return;
+      setUserEmail(user?.email??null);
+      if(user){
+        const res=await getDashboardData(locale);
+        if(!active)return;
+        if(!res.isAdmin){
+          setIsAdmin(false);
+          setStatus(res.error||"This account is not authorized to manage the CMS.");
+          setLoading(false);
+          return;
+        }
+        setIsAdmin(true);
+        if(res.error)setStatus(res.error);
+        setProjects(res.projects);
+        setTimeline(res.timeline);
+        setRows(res.content);
+      }
+      setLoading(false);
+    };
+    void load();
+    return()=>{active=false};
+  },[supabase,locale]);
 
-  const signIn=async(e:FormEvent)=>{e.preventDefault();if(!supabase)return;setStatus("Signing in...");const{error}=await supabase.auth.signInWithPassword({email,password});if(error){setStatus(error.message);return}window.location.reload()};
-  const signOut=async()=>{if(!supabase)return;await supabase.auth.signOut();window.location.reload()};
+  const signIn=async(e:FormEvent)=>{
+    e.preventDefault();
+    if(!supabase)return;
+    setStatus("Signing in...");
+    const{error}=await supabase.auth.signInWithPassword({email,password});
+    if(error){setStatus(error.message);return}
+    window.location.reload();
+  };
 
-  const saveProject=async(e:FormEvent)=>{e.preventDefault();if(!supabase)return;const payload={...projectForm,github_url:projectForm.github_url||null,image_url:projectForm.image_url||null};const q=editingProject?supabase.from("projects").update(payload).eq("id",editingProject.id).select().single():supabase.from("projects").insert(payload).select().single();const{data,error}=await q;if(error){setStatus(error.message);return}if(data)setProjects(v=>(editingProject?v.map(p=>p.id===editingProject.id?data as Project:p):[...v,data as Project]).sort((a,b)=>a.sort_order-b.sort_order));setEditingProject(null);setProjectForm(emptyProject);setStatus("Project saved.")};
-  const deleteProject=async(id:string)=>{if(!supabase||!window.confirm("Delete this project?"))return;const{error}=await supabase.from("projects").delete().eq("id",id);if(error){setStatus(error.message);return}setProjects(v=>v.filter(p=>p.id!==id));setStatus("Project deleted.")};
+  const signOut=async()=>{
+    if(!supabase)return;
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
 
-  const saveTimeline=async(e:FormEvent)=>{e.preventDefault();if(!supabase)return;const payload={...timelineForm,locale};const q=editingTimeline?supabase.from("timeline_entries").update(payload).eq("id",editingTimeline.id).select().single():supabase.from("timeline_entries").insert(payload).select().single();const{data,error}=await q;if(error){setStatus(error.message);return}if(data)setTimeline(v=>(editingTimeline?v.map(item=>item.id===editingTimeline.id?data as Timeline:item):[...v,data as Timeline]).sort((a,b)=>a.sort_order-b.sort_order));setEditingTimeline(null);setTimelineForm({...emptyTimeline,locale});setStatus("Timeline saved.")};
-  const deleteTimeline=async(id:string)=>{if(!supabase)return;const{error}=await supabase.from("timeline_entries").delete().eq("id",id);if(error){setStatus(error.message);return}setTimeline(v=>v.filter(i=>i.id!==id));setStatus("Timeline entry deleted.")};
+  const saveProject=async(e:FormEvent)=>{
+    e.preventDefault();
+    setStatus("Saving project...");
+    const payload=editingProject?{...projectForm,id:editingProject.id}:{...projectForm};
+    const res=await saveProjectAction(payload);
+    if(!res.success||!res.data){
+      setStatus(res.error||"Failed to save project.");
+      return;
+    }
+    const saved=res.data;
+    setProjects(v=>(editingProject?v.map(p=>p.id===editingProject.id?saved:p):[...v,saved]).sort((a,b)=>a.sort_order-b.sort_order));
+    setEditingProject(null);
+    setProjectForm(emptyProject);
+    setStatus("Project saved.");
+  };
+
+  const deleteProject=async(id:string)=>{
+    if(!window.confirm("Delete this project?"))return;
+    setStatus("Deleting project...");
+    const res=await deleteProjectAction(id);
+    if(!res.success){
+      setStatus(res.error||"Failed to delete project.");
+      return;
+    }
+    setProjects(v=>v.filter(p=>p.id!==id));
+    setStatus("Project deleted.");
+  };
+
+  const saveTimeline=async(e:FormEvent)=>{
+    e.preventDefault();
+    setStatus("Saving timeline...");
+    const payload=editingTimeline?{...timelineForm,id:editingTimeline.id,locale}:{...timelineForm,locale};
+    const res=await saveTimelineAction(payload);
+    if(!res.success||!res.data){
+      setStatus(res.error||"Failed to save timeline.");
+      return;
+    }
+    const saved=res.data;
+    setTimeline(v=>(editingTimeline?v.map(item=>item.id===editingTimeline.id?saved:item):[...v,saved]).sort((a,b)=>a.sort_order-b.sort_order));
+    setEditingTimeline(null);
+    setTimelineForm({...emptyTimeline,locale});
+    setStatus("Timeline saved.");
+  };
+
+  const deleteTimeline=async(id:string)=>{
+    setStatus("Deleting timeline entry...");
+    const res=await deleteTimelineAction(id);
+    if(!res.success){
+      setStatus(res.error||"Failed to delete timeline entry.");
+      return;
+    }
+    setTimeline(v=>v.filter(i=>i.id!==id));
+    setStatus("Timeline entry deleted.");
+  };
 
   const value=(section:string,field:string)=>rows.find(r=>r.section===section&&r.field===field)?.value??fallback(locale,section,field);
   const setValue=(section:string,field:string,val:string)=>setRows(v=>{const existing=v.find(r=>r.section===section&&r.field===field);return existing?v.map(r=>r===existing?{...r,value:val}:r):[...v,{locale,section,field,value:val}]});
-  const saveContent=async()=>{if(!supabase)return;const payload=contentFields.map(([section,field])=>({locale,section,field,value:value(section,field)}));const{error}=await supabase.from("site_content").upsert(payload,{onConflict:"locale,section,field"});setStatus(error?error.message:"Content saved.")};
+
+  const saveContent=async()=>{
+    setStatus("Saving content...");
+    const payload=contentFields.map(([section,field])=>({locale,section,field,value:value(section,field)}));
+    const res=await saveContentAction(payload);
+    setStatus(res.success?"Content saved.":(res.error||"Failed to save content."));
+  };
+
+  const saveSocial=async()=>{
+    setStatus("Saving social links...");
+    const payload=(["github","linkedin"] as const).map(field=>({locale,section:"social",field,value:value("social",field)}));
+    const res=await saveContentAction(payload);
+    setStatus(res.success?"Social links saved.":(res.error||"Failed to save social links."));
+  };
 
   if(loading)return <main className="min-h-screen bg-[var(--bg)] p-8 text-[var(--fg)]"><p className="font-mono text-xs uppercase tracking-[.2em] text-[var(--muted)]">Loading dashboard...</p></main>;
   if(!supabase)return <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-5 text-[var(--fg)]"><div className="w-full max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-8"><h1 className="text-4xl">Supabase is not configured.</h1><p className="mt-5 leading-7 text-[var(--muted)]">Configure the environment variables and run the Supabase schema.</p><Link href="/" className="mt-8 inline-flex items-center gap-2 text-sm"><ArrowLeft size={15}/> Back</Link></div></main>;
   if(!userEmail)return <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-5 text-[var(--fg)]"><form onSubmit={signIn} className="w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-8"><p className="font-mono text-xs tracking-[.2em]">FS / DASHBOARD</p><h1 className="mt-4 text-4xl">Sign in</h1><div className="mt-8 space-y-4"><input value={email} onChange={e=>setEmail(e.target.value)} type="email" autoComplete="email" required placeholder="Email" className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><input value={password} onChange={e=>setPassword(e.target.value)} type="password" autoComplete="current-password" required placeholder="Password" className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/></div>{status&&<p className="mt-4 text-sm text-[var(--muted)]">{status}</p>}<button type="submit" className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]">Sign in <Check size={15}/></button></form></main>;
+  if(!isAdmin)return <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-5 text-[var(--fg)]"><div className="w-full max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-8"><h1 className="text-4xl">Access denied.</h1><p className="mt-5 leading-7 text-[var(--muted)]">{status||"This account is not authorized to manage the CMS."}</p><button onClick={signOut} className="mt-8 rounded-full border border-[var(--line)] px-4 py-2 text-xs">Sign out</button></div></main>;
 
   return <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
     <header className="border-b border-[var(--line)] px-5 py-4 md:px-8"><div className="mx-auto flex max-w-[1500px] items-center justify-between"><div><p className="font-mono text-xs tracking-[.18em]">FS / DASHBOARD</p><p className="text-xs text-[var(--muted)]">{userEmail}</p></div><div className="flex items-center gap-3"><Link href="/" className="hidden items-center gap-2 text-xs text-[var(--muted)] md:flex"><ExternalLink size={14}/> View site</Link><button onClick={signOut} className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs"><LogOut size={14}/> Sign out</button></div></div></header>
     <div className="mx-auto grid max-w-[1500px] gap-8 px-5 py-8 md:grid-cols-[220px_1fr] md:px-8">
       <aside className="md:sticky md:top-8 md:h-fit"><nav className="flex gap-2 overflow-x-auto md:block md:space-y-2">{(["projects","timeline","content","settings"] as Tab[]).map(item=><button key={item} onClick={()=>setTab(item)} className={`flex w-full rounded-xl px-4 py-3 text-left text-sm capitalize ${tab===item?"bg-[var(--surface-strong)]":"text-[var(--muted)] hover:bg-[var(--surface)]"}`}>{item}</button>)}</nav></aside>
-      <section><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">Content management</p><h1 className="mt-2 text-5xl tracking-[-.06em]">{tab}</h1></div><div className="flex items-center gap-3">{tab!=="projects"&&tab!=="settings"&&<div className="flex rounded-full border border-[var(--line)] p-1"><button onClick={()=>setLocale("en")} className={`rounded-full px-3 py-1 text-xs ${locale==="en"?"bg-[var(--fg)] text-[var(--bg)]":""}`}>EN</button><button onClick={()=>setLocale("pt")} className={`rounded-full px-3 py-1 text-xs ${locale==="pt"?"bg-[var(--fg)] text-[var(--bg)]":""}`}>PT</button></div>}{status&&<p className="text-xs text-[var(--muted)]">{status}</p>}</div></div>
+      <section><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">Content management</p><h1 className="mt-2 text-5xl tracking-[-.06em]">{tab}</h1></div><div className="flex items-center gap-3">{tab!=="projects"&&<div className="flex rounded-full border border-[var(--line)] p-1"><button onClick={()=>setLocale("en")} className={`rounded-full px-3 py-1 text-xs ${locale==="en"?"bg-[var(--fg)] text-[var(--bg)]":""}`}>EN</button><button onClick={()=>setLocale("pt")} className={`rounded-full px-3 py-1 text-xs ${locale==="pt"?"bg-[var(--fg)] text-[var(--bg)]":""}`}>PT</button></div>}{status&&<p className="text-xs text-[var(--muted)]">{status}</p>}</div></div>
 
       {tab==="projects"&&<div className="grid gap-6 xl:grid-cols-[1fr_400px]"><div className="space-y-3">{projects.map(p=><article key={p.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"><div className="flex items-start justify-between gap-4"><div><div className="flex gap-2"><span className="rounded-full border border-[var(--line)] px-2 py-1 font-mono text-[9px] uppercase text-[var(--faint)]">{p.published?"Published":"Draft"}</span>{p.featured&&<span className="rounded-full border border-[var(--line)] px-2 py-1 font-mono text-[9px] uppercase text-[var(--faint)]">Featured</span>}</div><h2 className="mt-3 text-2xl">{p.title}</h2><p className="text-sm text-[var(--muted)]">{p.category}</p></div><div className="flex gap-2"><button onClick={()=>{setEditingProject(p);setProjectForm(p)}} className="rounded-lg border border-[var(--line)] px-3 py-2 text-xs">Edit</button><button onClick={()=>void deleteProject(p.id)} aria-label={`Delete ${p.title}`} className="rounded-lg border border-[var(--line)] p-2"><Trash2 size={14}/></button></div></div><p className="mt-4 text-sm leading-6 text-[var(--muted)]">{p.description}</p><div className="mt-4 flex flex-wrap gap-2">{p.stack.map(s=><span key={s} className="font-mono text-[9px] text-[var(--faint)]">{s}</span>)}</div></article>)}</div><form onSubmit={saveProject} className="h-fit rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"><h2 className="text-xl">{editingProject?"Edit project":"New project"}</h2><div className="mt-5 space-y-4">{([["title","Title"],["slug","Slug"],["category","Category"],["description","Description"],["href","Website URL"],["github_url","GitHub URL"],["image_url","Image URL"]] as const).map(([key,label])=><input key={key} placeholder={label} value={key==="title"?projectForm.title:key==="slug"?projectForm.slug:key==="category"?projectForm.category:key==="description"?projectForm.description:key==="href"?projectForm.href:key==="github_url"?(projectForm.github_url??""):projectForm.image_url??""} onChange={e=>setProjectForm({...projectForm,[key]:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/>) }<input placeholder="Stack, comma separated" value={projectForm.stack.join(", ")} onChange={e=>setProjectForm({...projectForm,stack:e.target.value.split(",").map(v=>v.trim()).filter(Boolean)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><input type="number" placeholder="Order" value={projectForm.sort_order} onChange={e=>setProjectForm({...projectForm,sort_order:Number(e.target.value)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><div className="flex gap-5 text-xs text-[var(--muted)]"><label><input type="checkbox" checked={projectForm.featured} onChange={e=>setProjectForm({...projectForm,featured:e.target.checked})}/> Featured</label><label><input type="checkbox" checked={projectForm.published} onChange={e=>setProjectForm({...projectForm,published:e.target.checked})}/> Published</label></div></div><button type="submit" className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]"><Save size={15}/> Save project</button></form></div>}
 
@@ -76,7 +187,7 @@ export default function DashboardPage(){
 
       {tab==="content"&&<div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6"><div className="mb-6"><h2 className="text-2xl">Site content</h2><p className="mt-2 text-sm text-[var(--muted)]">Edit the main public copy without changing code.</p></div><div className="grid gap-5 md:grid-cols-2">{contentFields.map(([section,field,label])=><label key={`${section}.${field}`} className="block text-sm text-[var(--muted)]"><span className="font-mono text-[9px] uppercase tracking-[.15em] text-[var(--faint)]">{section}</span><span className="mt-1 block">{label}</span><textarea rows={field==="description"||field==="body"||field==="intro"||field==="title"?3:2} value={value(section,field)} onChange={e=>setValue(section,field,e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--fg)]"/></label>)}</div><button onClick={()=>void saveContent()} className="mt-6 flex items-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]"><Save size={15}/> Save content</button></div>}
 
-      {tab==="settings"&&<div className="max-w-2xl rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6"><h2 className="text-2xl">Social links</h2><p className="mt-2 text-sm text-[var(--muted)]">These links are used by the public site and structured data.</p><div className="mt-6 space-y-5">{(["github","linkedin"] as const).map(field=><label key={field} className="block text-sm text-[var(--muted)]">{field==="github"?"GitHub URL":"LinkedIn URL"}<input value={rows.find(r=>r.section==="social"&&r.field===field)?.value??(field==="github"?"https://github.com/felipe-seabra":"")} onChange={e=>setValue("social",field,e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--fg)]"/></label>)}</div><button onClick={()=>void saveContent()} className="mt-6 flex items-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]"><Save size={15}/> Save settings</button></div>}
+      {tab==="settings"&&<div className="max-w-2xl rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6"><h2 className="text-2xl">Social links</h2><p className="mt-2 text-sm text-[var(--muted)]">These links are used by the public site and structured data.</p><div className="mt-6 space-y-5">{(["github","linkedin"] as const).map(field=><label key={field} className="block text-sm text-[var(--muted)]">{field==="github"?"GitHub URL":"LinkedIn URL"}<input value={value("social",field)} onChange={e=>setValue("social",field,e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--fg)]"/></label>)}</div><button onClick={()=>void saveSocial()} className="mt-6 flex items-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]"><Save size={15}/> Save settings</button></div>}
       </section>
     </div>
   </main>;
