@@ -65,7 +65,7 @@ function Avatar() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: .9, ease: [.22, 1, .36, 1] }}
       whileHover={{ scale: 1.015 }}
-      className="relative mx-auto w-full max-w-[470px] lg:sticky lg:top-24"
+      className="relative mx-auto w-full max-w-[620px] lg:sticky lg:top-24"
       role="img"
       aria-label="Illustrated caricature of Felipe Seabra wearing headphones and a hoodie"
     >
@@ -82,7 +82,7 @@ function Avatar() {
         <img
           src="/avatar-caricature.svg"
           alt="Caricature of Felipe Seabra with dark hair, full beard, headphones and hoodie"
-          className="relative z-10 w-full"
+          className="relative z-10 w-full max-w-[620px] drop-shadow-[0_35px_80px_rgba(0,0,0,.42)]"
         />
       </motion.div>
     </motion.div>
@@ -163,15 +163,15 @@ export default function Home() {
   return <main id="top" className="overflow-hidden bg-[var(--bg)] text-[var(--fg)] transition-colors duration-500">
     <SmoothScroll /><ScrollProgress /><InteractiveCursor />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "ProfilePage", "mainEntity": { "@type": "Person", "@id": "https://felipeseabra.com.br/#person", "name": "Felipe Seabra", "url": "https://felipeseabra.com.br/", "jobTitle": "Front-End focused Full-Stack Developer", "image": "https://felipeseabra.com.br/avatar-caricature.svg", "address": { "@type": "PostalAddress", "addressLocality": "Dublin", "addressCountry": "IE" }, "sameAs": socialLinks.map(link => link.href) } }) }} />
-    <header className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-8">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between rounded-full border border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_78%,transparent)] px-4 py-3 backdrop-blur-xl md:px-5">
-        <a href="#top" className="font-mono text-xs tracking-[.22em]">FS<span className="text-[var(--faint)]">/26</span></a>
-        <nav className="hidden items-center gap-6 md:flex">
-          {navItems.map(([key, href, label]) => <a key={key} href={href} className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--fg)]">{label}</a>)}
-          {socialLinks.map(link => { const Icon = link.icon; return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="text-[var(--muted)] transition-colors hover:text-[var(--fg)]"><Icon size={15} /></a> })}
-          <button type="button" onClick={toggleLocale} className="flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--fg)]" aria-label={t.controls.language}><Languages size={15} />{locale === "en" ? "PT" : "EN"}</button>
-          <button type="button" onClick={toggleTheme} className="flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--fg)]" aria-label={t.controls.theme}>{theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}</button>
-          <a href={`mailto:${text("contact", "email", "hello@felipeseabra.com.br")}`} className="flex items-center gap-1 text-sm">{text("nav", "talk", t.nav.talk)}<ArrowUpRight size={14} /></a>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_82%,transparent)] backdrop-blur-xl">
+      <div className="mx-auto flex h-[88px] max-w-[1400px] items-center justify-between px-5 md:px-8">
+        <a href="#top" className="signature-logo text-[2rem] leading-none text-[var(--fg)]" aria-label="Felipe Seabra">Felipe Seabra<span className="ml-2 inline-block h-2 w-2 rounded-full bg-[var(--accent)] align-middle" /></a>
+        <nav className="hidden items-center gap-8 md:flex">
+          {navItems.map(([key, href, label]) => <a key={key} href={href} className={`nav-link text-sm text-[var(--muted)] transition-colors hover:text-[var(--fg)] ${key === "journey" ? "nav-link-active" : ""}`}>{label}</a>)}
+          {socialLinks.map(link => { const Icon = link.icon; return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="text-[var(--muted)] transition-colors hover:text-[var(--fg)]"><Icon size={18} /></a> })}
+          <button type="button" onClick={toggleLocale} className="text-sm text-[var(--muted)] hover:text-[var(--fg)]" aria-label={t.controls.language}>{locale === "en" ? "PT" : "EN"}</button>
+          <button type="button" onClick={toggleTheme} className="text-[var(--muted)] hover:text-[var(--fg)]" aria-label={t.controls.theme}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
+          <a href={`mailto:${text("contact", "email", "hello@felipeseabra.com.br")}`} className="rounded-full border border-[var(--accent)] px-5 py-2.5 text-sm text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--bg)]">{text("nav", "talk", t.nav.talk)} <ArrowUpRight size={14} className="inline" /></a>
         </nav>
         <button type="button" aria-label={open ? t.controls.menuClose : t.controls.menuOpen} onClick={() => setOpen(!open)} className="md:hidden">{open ? <X size={20} /> : <Menu size={20} />}</button>
       </div>
@@ -181,10 +181,11 @@ export default function Home() {
         <div className="flex gap-3 pt-3"><button type="button" onClick={toggleLocale} className="rounded-full border border-[var(--line)] px-4 py-2 text-xs">{locale === "en" ? "Português" : "English"}</button><button type="button" onClick={toggleTheme} className="rounded-full border border-[var(--line)] px-4 py-2 text-xs">{theme === "dark" ? t.controls.light : t.controls.dark}</button></div>
       </motion.nav>}</AnimatePresence>
     </header>
+    <div className="side-scroll-indicator" aria-hidden="true"><span>SCROLL</span><i /></div>
 
     <section className="relative flex min-h-[100svh] items-center px-5 pb-16 pt-28 md:px-8 md:pb-20">
       <motion.div style={{ y: heroY, scale: heroScale }} className="pointer-events-none absolute inset-0"><div className="glow absolute inset-0" /><div className="grid-lines absolute inset-0 opacity-60" /><div className="noise absolute inset-0 opacity-[.12]" /></motion.div>
-      <div className="relative mx-auto grid w-full max-w-[1400px] items-center gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-16">
+      <div className="relative mx-auto grid w-full max-w-[1400px] items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(420px,1.05fr)] lg:gap-10">
         <div>
           <div className="mb-7 flex flex-wrap justify-between gap-4 font-mono text-[10px] uppercase tracking-[.2em] text-[var(--faint)] md:mb-9"><span>{text("hero", "location", t.hero.location)}</span><span>{text("hero", "eyebrow", t.hero.eyebrow)}</span></div>
           <motion.h1 initial={{ y: 36 }} animate={{ y: 0 }} transition={{ duration: 1, ease: [.22, 1, .36, 1] }} className="max-w-6xl text-[14vw] font-medium leading-[.78] tracking-[-.09em]">{text("hero", "name_first", "Felipe")}<br /><span className="ml-[8vw] text-[var(--faint)]">{text("hero", "name_last", "Seabra.")}</span></motion.h1>
