@@ -1,7 +1,7 @@
 "use client";
 
 import {FormEvent,useEffect,useMemo,useState} from "react";
-import {ArrowLeft,Check,ExternalLink,LayoutDashboard,LogOut,Plus,Save,Trash2} from "lucide-react";
+import {ArrowLeft,Check,ExternalLink,LogOut,Save,Trash2} from "lucide-react";
 import Link from "next/link";
 import {copy,type Locale} from "@/lib/i18n";
 import {createClient} from "@/lib/supabase/client";

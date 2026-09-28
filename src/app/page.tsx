@@ -2,7 +2,7 @@
 
 import {AnimatePresence,motion,useScroll,useTransform} from "framer-motion";
 import {ArrowDown,ArrowUpRight,Github,Languages,Linkedin,Menu,Moon,Sun,X} from "lucide-react";
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useState} from "react";
 import {copy,projects,type Locale} from "@/lib/i18n";
 import {ScrollProgress} from "@/components/portfolio/ScrollProgress";
 import {SmoothScroll} from "@/components/portfolio/SmoothScroll";

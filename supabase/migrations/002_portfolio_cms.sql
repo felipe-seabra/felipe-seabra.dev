@@ -30,12 +30,12 @@ on conflict (slug) do update set
 insert into public.site_content(locale,section,field,value)
 values
 ('en','social','github','https://github.com/felipe-seabra'),
-('en','social','linkedin',''),
+('en','social','linkedin','https://www.linkedin.com/in/felipe-seabra/'),
 ('en','contact','email','hello@felipeseabra.com.br'),
 ('en','seo','title','Felipe Seabra — Front-End Developer'),
 ('en','seo','description','Portfolio and career timeline of Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.'),
 ('pt','social','github','https://github.com/felipe-seabra'),
-('pt','social','linkedin',''),
+('pt','social','linkedin','https://www.linkedin.com/in/felipe-seabra/'),
 ('pt','contact','email','hello@felipeseabra.com.br'),
 ('pt','seo','title','Felipe Seabra — Desenvolvedor Front-End'),
 ('pt','seo','description','Portfólio e trajetória profissional de Felipe Seabra, desenvolvedor Full-Stack com foco em Front-End em Dublin, Irlanda.')
