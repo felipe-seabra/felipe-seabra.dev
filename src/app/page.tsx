@@ -54,18 +54,39 @@ function Reveal({ children, delay = 0, className = "" }: { children: React.React
 
 function Avatar() {
   const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 1000], [0, -120]);
-  const rotate = useTransform(scrollY, [0, 1000], [-2, 3]);
-  return <motion.div style={{ y, rotate }} initial={{ y: 20, rotate: -2 }} animate={{ y: 0, rotate: 0 }} whileHover={{ scale: 1.025 }} transition={{ duration: .9, ease: [.22, 1, .36, 1] }} className="relative mx-auto w-full max-w-[380px]" role="img" aria-label="Felipe Seabra">
-    <div className="relative overflow-hidden rounded-[2.5rem] border border-[var(--line)] bg-[var(--surface)] shadow-2xl">
-      <motion.div animate={{ opacity: [.18, .34, .18], scale: [1, 1.08, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-[var(--accent)] blur-3xl" />
-      <img src="/avatar.svg" alt="Illustrated portrait of Felipe Seabra" className="relative block aspect-square w-full object-cover" />
-      <div className="absolute inset-x-5 bottom-5 flex items-center justify-between rounded-2xl border border-white/10 bg-black/45 px-4 py-3 backdrop-blur-xl">
-        <span className="font-mono text-[9px] uppercase tracking-[.16em] text-white/65">FS / Dublin</span>
-        <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[.16em] text-white/65"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Available</span>
-      </div>
-    </div>
-  </motion.div>;
+  const y = useTransform(scrollY, [0, 1000], [0, -90]);
+  const rotate = useTransform(scrollY, [0, 1000], [-1.5, 2]);
+  const scale = useTransform(scrollY, [0, 1000], [1, 0.96]);
+
+  return (
+    <motion.div
+      style={{ y, rotate, scale }}
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: .9, ease: [.22, 1, .36, 1] }}
+      whileHover={{ scale: 1.015 }}
+      className="relative mx-auto w-full max-w-[470px] lg:sticky lg:top-24"
+      role="img"
+      aria-label="Illustrated caricature of Felipe Seabra wearing headphones and a hoodie"
+    >
+      <motion.div
+        animate={{ y: [0, -7, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="relative"
+      >
+        <motion.div
+          animate={{ opacity: [.12, .24, .12], scale: [1, 1.08, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-16 rounded-full bg-[var(--accent)] blur-3xl"
+        />
+        <img
+          src="/avatar-caricature.svg"
+          alt="Caricature of Felipe Seabra with dark hair, full beard, headphones and hoodie"
+          className="relative z-10 w-full"
+        />
+      </motion.div>
+    </motion.div>
+  );
 }
 
 export default function Home() {
@@ -141,7 +162,7 @@ export default function Home() {
 
   return <main id="top" className="overflow-hidden bg-[var(--bg)] text-[var(--fg)] transition-colors duration-500">
     <SmoothScroll /><ScrollProgress /><InteractiveCursor />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "ProfilePage", "mainEntity": { "@type": "Person", "@id": "https://felipeseabra.com.br/#person", "name": "Felipe Seabra", "url": "https://felipeseabra.com.br/", "jobTitle": "Front-End focused Full-Stack Developer", "image": "https://felipeseabra.com.br/avatar.svg", "address": { "@type": "PostalAddress", "addressLocality": "Dublin", "addressCountry": "IE" }, "sameAs": socialLinks.map(link => link.href) } }) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "ProfilePage", "mainEntity": { "@type": "Person", "@id": "https://felipeseabra.com.br/#person", "name": "Felipe Seabra", "url": "https://felipeseabra.com.br/", "jobTitle": "Front-End focused Full-Stack Developer", "image": "https://felipeseabra.com.br/avatar-caricature.svg", "address": { "@type": "PostalAddress", "addressLocality": "Dublin", "addressCountry": "IE" }, "sameAs": socialLinks.map(link => link.href) } }) }} />
     <header className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-8">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between rounded-full border border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_78%,transparent)] px-4 py-3 backdrop-blur-xl md:px-5">
         <a href="#top" className="font-mono text-xs tracking-[.22em]">FS<span className="text-[var(--faint)]">/26</span></a>
