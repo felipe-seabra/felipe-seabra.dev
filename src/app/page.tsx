@@ -54,18 +54,49 @@ function Reveal({ children, delay = 0, className = "" }: { children: React.React
 
 function Avatar() {
   const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 1000], [0, -120]);
-  const rotate = useTransform(scrollY, [0, 1000], [-2, 3]);
-  return <motion.div style={{ y, rotate }} initial={{ y: 20, rotate: -2 }} animate={{ y: 0, rotate: 0 }} whileHover={{ scale: 1.025 }} transition={{ duration: .9, ease: [.22, 1, .36, 1] }} className="relative mx-auto w-full max-w-[380px]" role="img" aria-label="Felipe Seabra">
-    <div className="relative overflow-hidden rounded-[2.5rem] border border-[var(--line)] bg-[var(--surface)] shadow-2xl">
-      <motion.div animate={{ opacity: [.18, .34, .18], scale: [1, 1.08, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-[var(--accent)] blur-3xl" />
-      <img src="/avatar.svg" alt="Illustrated portrait of Felipe Seabra" className="relative block aspect-square w-full object-cover" />
-      <div className="absolute inset-x-5 bottom-5 flex items-center justify-between rounded-2xl border border-white/10 bg-black/45 px-4 py-3 backdrop-blur-xl">
-        <span className="font-mono text-[9px] uppercase tracking-[.16em] text-white/65">FS / Dublin</span>
-        <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[.16em] text-white/65"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Available</span>
-      </div>
-    </div>
-  </motion.div>;
+  const y = useTransform(scrollY, [0, 900], [0, -90]);
+  const rotate = useTransform(scrollY, [0, 900], [-3, 4]);
+  const scale = useTransform(scrollY, [0, 900], [1, 0.94]);
+
+  return (
+    <motion.div
+      style={{ y, rotate, scale }}
+      initial={{ opacity: 0, y: 40, rotate: -4 }}
+      animate={{ opacity: 1, y: 0, rotate: 0 }}
+      transition={{ duration: 1, ease: [.22, 1, .36, 1] }}
+      whileHover={{ rotate: -1, scale: 1.025 }}
+      className="relative mx-auto w-full max-w-[430px] lg:sticky lg:top-28"
+      role="img"
+      aria-label="Illustrated caricature of Felipe Seabra"
+    >
+      <motion.div
+        animate={{ y: [0, -8, 0], rotate: [0, 0.8, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="relative"
+      >
+        <motion.div
+          animate={{ opacity: [.12, .25, .12], scale: [1, 1.12, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-12 rounded-full bg-[var(--accent)] blur-3xl"
+        />
+        <img
+          src="/avatar-caricature.svg"
+          alt="Caricature of Felipe Seabra wearing a hoodie and headphones"
+          className="relative z-10 mx-auto w-full drop-shadow-[0_30px_55px_rgba(0,0,0,.35)]"
+        />
+        <motion.div
+          animate={{ x: [0, 8, 0], y: [0, -5, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute right-3 top-24 h-3 w-3 rounded-full bg-[var(--accent)]"
+        />
+        <motion.div
+          animate={{ x: [0, -7, 0], y: [0, 6, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: .5 }}
+          className="absolute left-5 top-44 h-2 w-2 rounded-full bg-[var(--fg)] opacity-30"
+        />
+      </motion.div>
+    </motion.div>
+  );
 }
 
 export default function Home() {
