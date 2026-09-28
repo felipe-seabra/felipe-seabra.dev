@@ -9,5 +9,4 @@ class IntersectionObserverMock {
   takeRecords(): IntersectionObserverEntry[] { return []; }
   unobserve() {}
 }
-
 globalThis.IntersectionObserver = IntersectionObserverMock as unknown as typeof IntersectionObserver;
