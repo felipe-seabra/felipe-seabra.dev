@@ -6,7 +6,6 @@ import {useEffect,useMemo,useState} from "react";
 import {copy,projects,type Locale} from "@/lib/i18n";
 import {ScrollProgress} from "@/components/portfolio/ScrollProgress";
 import {SmoothScroll} from "@/components/portfolio/SmoothScroll";
-import {createClient} from "@/lib/supabase/client";
 
 type Theme="dark"|"light";
 type ProjectItem={
@@ -74,24 +73,22 @@ export default function Home(){
     document.documentElement.lang=locale;
     window.localStorage.setItem("portfolio-theme",theme);
     window.localStorage.setItem("portfolio-locale",locale);
-    const supabase=createClient();
-    if(!supabase)return;
     let active=true;
     const load=async()=>{
-      const [{data:contentRows},{data:timelineRows},{data:projectRows}]=await Promise.all([
-        supabase.from("site_content").select("section,field,value").eq("locale",locale),
-        supabase.from("timeline_entries").select("chapter,period,title,body,tags").eq("locale",locale).eq("published",true).order("sort_order",{ascending:true}),
-        supabase.from("projects").select("id,title,category,description,stack,href,github_url,image_url,featured,published,sort_order").eq("published",true).order("sort_order",{ascending:true}),
-      ]);
+      const response=await fetch("/api/content?locale="+locale,{cache:"no-store"});
+      if(!response.ok)return;
+      const payload=await response.json() as {
+        content:Record<string,string>;
+        timeline:TimelineItem[];
+        projects:ProjectItem[];
+      };
       if(!active)return;
-      const map:Record<string,string>={};
-      for(const row of contentRows??[])map[`${row.section}.${row.field}`]=row.value;
-      setCms(map);
-      if(timelineRows?.length)setTimelineItems(timelineRows as TimelineItem[]);
-      if(projectRows?.length)setProjectItems(projectRows.map((p,i)=>({...p,number:String(i+1).padStart(2,"0")})));
+      setCms(payload.content??{});
+      if(payload.timeline?.length)setTimelineItems(payload.timeline);
+      if(payload.projects?.length)setProjectItems(payload.projects.map((item,index)=>({...item,number:String(index+1).padStart(2,"0")})));
       setSocial({
-        github:map["social.github"]||"https://github.com/felipe-seabra",
-        linkedin:map["social.linkedin"]||"",
+        github:payload.content?.["social.github"]||"https://github.com/felipe-seabra",
+        linkedin:payload.content?.["social.linkedin"]||"",
       });
     };
     void load();
