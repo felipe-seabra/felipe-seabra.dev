@@ -120,7 +120,7 @@ export default function Home(){
         {navItems.map(([key,href,label])=><a onClick={()=>setOpen(false)} key={key} href={href} className="block border-b border-[var(--line)] py-4 text-lg">{label}</a>)}
         <div className="flex gap-3 pt-5">{socialLinks.map(link=>{const Icon=link.icon;return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs"><Icon size={14}/>{link.label}</a>})}</div>
         <div className="flex gap-3 pt-3"><button type="button" onClick={toggleLocale} className="rounded-full border border-[var(--line)] px-4 py-2 text-xs">{locale==="en"?"Português":"English"}</button><button type="button" onClick={toggleTheme} className="rounded-full border border-[var(--line)] px-4 py-2 text-xs">{theme==="dark"?t.controls.light:t.controls.dark}</button></div>
-      </motion.nav></AnimatePresence>
+      </motion.nav>}</AnimatePresence>
     </header>
 
     <section className="relative flex min-h-[100svh] items-center px-5 pb-16 pt-28 md:px-8 md:pb-20">
