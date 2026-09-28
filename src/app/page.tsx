@@ -71,7 +71,8 @@ function Avatar() {
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("en");
   const [theme, setTheme] = useState<Theme>("dark");
-  const [open, setOpen] = useState(false);\n  const [showTop, setShowTop] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [showTop, setShowTop] = useState(false);
   const [projectItems, setProjectItems] = useState<ProjectItem[]>(projects.map((p, i) => ({ ...p, number: p.number, sort_order: i })));
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [cms, setCms] = useState<Record<string, string>>({});
