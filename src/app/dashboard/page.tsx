@@ -45,11 +45,10 @@ export default function DashboardPage(){
   const [form,setForm]=useState(emptyProject);
   const [content,setContent]=useState({heroTitle:"",heroIntro:""});
   const [status,setStatus]=useState("");
-  const [loading,setLoading]=useState(true);
+  const [loading,setLoading]=useState(()=>Boolean(supabase));
 
   useEffect(()=>{
     if(!supabase){
-      setLoading(false);
       return;
     }
 
