@@ -11,7 +11,7 @@ function Avatar({label}:{label:string}){return <motion.div initial={{opacity:0,s
 
 export default function Home(){
  const[locale,setLocale]=useState<Locale>("en");const[theme,setTheme]=useState<Theme>("dark");const[open,setOpen]=useState(false);const t=copy[locale];
- useEffect(()=>{const l=window.localStorage.getItem("portfolio-locale");const th=window.localStorage.getItem("portfolio-theme");if(l==="en"||l==="pt")setLocale(l);if(th==="dark"||th==="light")setTheme(th)},[]);
+ useEffect(()=>{const l=window.localStorage.getItem("portfolio-locale");const th=window.localStorage.getItem("portfolio-theme");const nextLocale=l==="en"||l==="pt"?l:"en";const nextTheme=th==="dark"||th==="light"?th:"dark";document.documentElement.dataset.theme=nextTheme;document.documentElement.lang=nextLocale;window.localStorage.setItem("portfolio-theme",nextTheme);window.localStorage.setItem("portfolio-locale",nextLocale);queueMicrotask(()=>{if(nextLocale!==locale)setLocale(nextLocale);if(nextTheme!==theme)setTheme(nextTheme)})},[]);
  useEffect(()=>{document.documentElement.dataset.theme=theme;document.documentElement.lang=locale;window.localStorage.setItem("portfolio-theme",theme);window.localStorage.setItem("portfolio-locale",locale)},[locale,theme]);
  const toggleLocale=()=>setLocale(v=>v==="en"?"pt":"en");const toggleTheme=()=>setTheme(v=>v==="dark"?"light":"dark");
  const navItems=[["journey","#journey",t.nav.journey],["work","#work",t.nav.work],["about","#about",t.nav.about],["contact","#contact",t.nav.contact]] as const;
