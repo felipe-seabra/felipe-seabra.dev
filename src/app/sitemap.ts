@@ -1,6 +1,6 @@
 import type {MetadataRoute} from "next";
 
-const siteUrl="https://felipeseabra.dev";
+const siteUrl="https://felipeseabra.com.br";
 
 export default function sitemap():MetadataRoute.Sitemap{
   return [

@@ -4,7 +4,7 @@ Personal portfolio for Felipe Seabra, a Front-End focused Full-Stack Developer b
 
 ## Primary page
 
-- https://felipeseabra.dev/ — portfolio, career timeline, selected projects, capabilities and contact.
+- https://felipeseabra.com.br/ — portfolio, career timeline, selected projects, capabilities and contact.
 
 ## Technology
 

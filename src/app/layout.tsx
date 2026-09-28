@@ -1,7 +1,7 @@
 import type {Metadata,Viewport} from "next";
 import "./globals.css";
 
-const siteUrl="https://felipeseabra.dev";
+const siteUrl="https://felipeseabra.com.br";
 
 export const metadata:Metadata={
   metadataBase:new URL(siteUrl),
