@@ -14,7 +14,7 @@ type ProjectItem={
   title:string;
   category:string;
   description:string;
-  stack:string[];
+  stack:readonly string[];
   href:string;
   github_url?:string|null;
   image_url?:string|null;
@@ -75,21 +75,25 @@ export default function Home(){
     window.localStorage.setItem("portfolio-locale",locale);
     let active=true;
     const load=async()=>{
-      const response=await fetch("/api/content?locale="+locale,{cache:"no-store"});
-      if(!response.ok)return;
-      const payload=await response.json() as {
-        content:Record<string,string>;
-        timeline:TimelineItem[];
-        projects:ProjectItem[];
-      };
-      if(!active)return;
-      setCms(payload.content??{});
-      if(payload.timeline?.length)setTimelineItems(payload.timeline);
-      if(payload.projects?.length)setProjectItems(payload.projects.map((item,index)=>({...item,number:String(index+1).padStart(2,"0")})));
-      setSocial({
-        github:payload.content?.["social.github"]||"https://github.com/felipe-seabra",
-        linkedin:payload.content?.["social.linkedin"]||"",
-      });
+      try{
+        const response=await fetch("/api/content?locale="+locale,{cache:"no-store"});
+        if(!response.ok)return;
+        const payload=await response.json() as {
+          content:Record<string,string>;
+          timeline:TimelineItem[];
+          projects:ProjectItem[];
+        };
+        if(!active)return;
+        setCms(payload.content??{});
+        if(payload.timeline?.length)setTimelineItems(payload.timeline);
+        if(payload.projects?.length)setProjectItems(payload.projects.map((item,index)=>({...item,number:String(index+1).padStart(2,"0")})));
+        setSocial({
+          github:payload.content?.["social.github"]||"https://github.com/felipe-seabra",
+          linkedin:payload.content?.["social.linkedin"]||"",
+        });
+      }catch{
+        // Keep the local fallback content available when the API is unreachable.
+      }
     };
     void load();
     return()=>{active=false};
