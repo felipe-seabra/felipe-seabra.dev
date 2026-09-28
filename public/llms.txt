@@ -4,7 +4,13 @@ Personal portfolio for Felipe Seabra, a Front-End focused Full-Stack Developer b
 
 ## Primary page
 
-- https://felipeseabra.dev/ — portfolio, career timeline, selected projects, capabilities and contact.
+- https://felipeseabra.com.br/ — portfolio, career timeline, selected projects, capabilities and contact.
+
+## Projects
+
+- Pizza Shopping — https://www.pizzashopping.com.br/
+- Kifol Fertilizantes — https://www.kifol.com.br/
+- Jocar Polimentos — https://www.jocarpolimentos.com.br/
 
 ## Technology
 
@@ -12,4 +18,4 @@ Next.js, React, TypeScript, Tailwind CSS, Framer Motion, Lenis and Supabase.
 
 ## Contact
 
-hello@felipeseabra.dev
+hello@felipeseabra.com.br
