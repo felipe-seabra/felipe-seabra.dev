@@ -53,7 +53,17 @@ export default function DashboardPage(){
   const[projects,setProjects]=useState<Project[]>([]);const[timeline,setTimeline]=useState<Timeline[]>([]);const[rows,setRows]=useState<Row[]>([]);
   const[editingProject,setEditingProject]=useState<Project|null>(null);const[projectForm,setProjectForm]=useState(emptyProject);
   const[editingTimeline,setEditingTimeline]=useState<Timeline|null>(null);const[timelineForm,setTimelineForm]=useState(emptyTimeline);
-  const[status,setStatus]=useState("");const[loading,setLoading]=useState(()=>Boolean(supabase));
+  const[status,setStatus]=useState("");
+  const[statusType,setStatusType]=useState<"success"|"error"|"info">("info");
+  const[loading,setLoading]=useState(()=>Boolean(supabase));
+  const[busy,setBusy]=useState(false);
+  const notify=(message:string,type:"success"|"error"|"info"="info")=>{setStatus(message);setStatusType(type)};
+
+  useEffect(()=>{
+    if(!status)return;
+    const timer=window.setTimeout(()=>setStatus(""),3000);
+    return()=>window.clearTimeout(timer);
+  },[status]);
 
   useEffect(()=>{
     if(!supabase)return;
@@ -86,9 +96,9 @@ export default function DashboardPage(){
   const signIn=async(e:FormEvent)=>{
     e.preventDefault();
     if(!supabase)return;
-    setStatus("Signing in...");
+    notify("Signing in...");
     const{error}=await supabase.auth.signInWithPassword({email,password});
-    if(error){setStatus(error.message);return}
+    if(error){notify(error.message,"error");return}
     window.location.reload();
   };
 
@@ -100,95 +110,138 @@ export default function DashboardPage(){
 
   const saveProject=async(e:FormEvent)=>{
     e.preventDefault();
-    setStatus("Saving project...");
+    setBusy(true);notify("Saving project...");
     const payload=editingProject?{...projectForm,id:editingProject.id}:{...projectForm};
     const res=await saveProjectAction(payload);
     if(!res.success||!res.data){
-      setStatus(res.error||"Failed to save project.");
+      notify(res.error||"Failed to save project.","error");setBusy(false);
       return;
     }
     const saved=res.data;
     setProjects(v=>(editingProject?v.map(p=>p.id===editingProject.id?saved:p):[...v,saved]).sort((a,b)=>a.sort_order-b.sort_order));
     setEditingProject(null);
     setProjectForm(emptyProject);
-    setStatus("Project saved.");
+    notify("Project saved.","success");setBusy(false);
   };
 
   const deleteProject=async(id:string)=>{
     if(!window.confirm("Delete this project?"))return;
-    setStatus("Deleting project...");
+    setBusy(true);notify("Deleting project...");
     const res=await deleteProjectAction(id);
     if(!res.success){
-      setStatus(res.error||"Failed to delete project.");
+      notify(res.error||"Failed to delete project.","error");setBusy(false);
       return;
     }
     setProjects(v=>v.filter(p=>p.id!==id));
-    setStatus("Project deleted.");
+    notify("Project deleted.","success");setBusy(false);
   };
 
   const saveTimeline=async(e:FormEvent)=>{
     e.preventDefault();
-    setStatus("Saving timeline...");
+    setBusy(true);notify("Saving timeline...");
     const payload=editingTimeline?{...timelineForm,id:editingTimeline.id,locale}:{...timelineForm,locale};
     const res=await saveTimelineAction(payload);
     if(!res.success||!res.data){
-      setStatus(res.error||"Failed to save timeline.");
+      notify(res.error||"Failed to save timeline.","error");setBusy(false);
       return;
     }
     const saved=res.data;
     setTimeline(v=>(editingTimeline?v.map(item=>item.id===editingTimeline.id?saved:item):[...v,saved]).sort((a,b)=>a.sort_order-b.sort_order));
     setEditingTimeline(null);
     setTimelineForm({...emptyTimeline,locale});
-    setStatus("Timeline saved.");
+    notify("Timeline saved.","success");setBusy(false);
   };
 
   const deleteTimeline=async(id:string)=>{
-    setStatus("Deleting timeline entry...");
+    setBusy(true);notify("Deleting timeline entry...");
     const res=await deleteTimelineAction(id);
     if(!res.success){
-      setStatus(res.error||"Failed to delete timeline entry.");
+      notify(res.error||"Failed to delete timeline entry.","error");setBusy(false);
       return;
     }
     setTimeline(v=>v.filter(i=>i.id!==id));
-    setStatus("Timeline entry deleted.");
+    notify("Timeline entry deleted.","success");setBusy(false);
   };
 
   const value=(section:string,field:string)=>rows.find(r=>r.section===section&&r.field===field)?.value??fallback(locale,section,field);
   const setValue=(section:string,field:string,val:string)=>setRows(v=>{const existing=v.find(r=>r.section===section&&r.field===field);return existing?v.map(r=>r===existing?{...r,value:val}:r):[...v,{locale,section,field,value:val}]});
 
   const saveContent=async()=>{
-    setStatus("Saving content...");
+    setBusy(true);notify("Saving content...");
     const payload=contentFields.map(([section,field])=>({locale,section,field,value:value(section,field)}));
     const res=await saveContentAction(payload);
-    setStatus(res.success?"Content saved.":(res.error||"Failed to save content."));
+    notify(res.success?"Content saved.":(res.error||"Failed to save content."),res.success?"success":"error");setBusy(false);
   };
 
   const saveSocial=async()=>{
-    setStatus("Saving social links...");
+    setBusy(true);notify("Saving social links...");
     const payload=(["github","linkedin"] as const).map(field=>({locale,section:"social",field,value:value("social",field)}));
     const res=await saveContentAction(payload);
-    setStatus(res.success?"Social links saved.":(res.error||"Failed to save social links."));
+    notify(res.success?"Social links saved.":(res.error||"Failed to save social links."),res.success?"success":"error");setBusy(false);
   };
 
   if(loading)return <main className="min-h-screen bg-[var(--bg)] p-8 text-[var(--fg)]"><p className="font-mono text-xs uppercase tracking-[.2em] text-[var(--muted)]">Loading dashboard...</p></main>;
   if(!supabase)return <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-5 text-[var(--fg)]"><div className="w-full max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-8"><h1 className="text-4xl">Supabase is not configured.</h1><p className="mt-5 leading-7 text-[var(--muted)]">Configure the environment variables and run the Supabase schema.</p><Link href="/" className="mt-8 inline-flex items-center gap-2 text-sm"><ArrowLeft size={15}/> Back</Link></div></main>;
-  if(!userEmail)return <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-5 text-[var(--fg)]"><form onSubmit={signIn} className="w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-8"><p className="font-mono text-xs tracking-[.2em]">FS / DASHBOARD</p><h1 className="mt-4 text-4xl">Sign in</h1><div className="mt-8 space-y-4"><input value={email} onChange={e=>setEmail(e.target.value)} type="email" autoComplete="email" required placeholder="Email" className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><input value={password} onChange={e=>setPassword(e.target.value)} type="password" autoComplete="current-password" required placeholder="Password" className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/></div>{status&&<p className="mt-4 text-sm text-[var(--muted)]">{status}</p>}<button type="submit" className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]">Sign in <Check size={15}/></button></form></main>;
+  if(!userEmail)return <main className="relative flex min-h-screen flex-col overflow-hidden bg-[var(--bg)] text-[var(--fg)]">
+    <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_50%_20%,rgba(94,227,139,0.08),transparent_32%),radial-gradient(circle_at_10%_90%,rgba(255,255,255,0.04),transparent_28%)]" />
+    <div className="relative flex flex-1 items-center justify-center px-5 py-16">
+      <form onSubmit={signIn} className="w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)]/90 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-[var(--fg)]/20 hover:shadow-[0_36px_90px_rgba(0,0,0,0.34)] md:p-9">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[.24em] text-[var(--faint)]">FS / Dashboard</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">Private content management</p>
+          </div>
+          <span className="h-2 w-2 rounded-full bg-[#5ee38b] shadow-[0_0_16px_rgba(94,227,139,0.65)]" aria-hidden="true" />
+        </div>
+        <div className="mt-10">
+          <p className="font-mono text-[10px] uppercase tracking-[.2em] text-[var(--faint)]">Authentication</p>
+          <h1 className="mt-3 text-4xl tracking-[-.05em] md:text-5xl">Sign in</h1>
+          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Access the portfolio dashboard to manage your published content.</p>
+        </div>
+        <div className="mt-8 space-y-5">
+          <label className="block">
+            <span className="mb-2 block text-xs text-[var(--muted)]">Email</span>
+            <input value={email} onChange={e=>setEmail(e.target.value)} type="email" autoComplete="email" required placeholder="you@example.com" className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3.5 text-sm transition-all duration-200 placeholder:text-[var(--faint)] hover:border-[var(--fg)]/20 focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/>
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-xs text-[var(--muted)]">Password</span>
+            <input value={password} onChange={e=>setPassword(e.target.value)} type="password" autoComplete="current-password" required placeholder="••••••••" className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3.5 text-sm transition-all duration-200 placeholder:text-[var(--faint)] hover:border-[var(--fg)]/20 focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/>
+          </label>
+        </div>
+        {status&&<p className="mt-5 rounded-xl border border-red-400/20 bg-red-400/5 px-4 py-3 text-sm leading-5 text-red-200" role="alert">{status}</p>}
+        <button type="submit" disabled={busy} className="mt-7 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(255,255,255,0.1)] active:translate-y-0 active:scale-[.99] disabled:cursor-wait disabled:opacity-60">
+          {busy?"Signing in...":"Sign in"} <Check size={15}/>
+        </button>
+        <Link href="/" className="mt-5 flex items-center justify-center rounded-xl border border-[var(--line)] px-4 py-3 text-xs text-[var(--muted)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--fg)]/30 hover:bg-[var(--surface-strong)] hover:text-[var(--fg)]">
+          Back to portfolio
+        </Link>
+      </form>
+    </div>
+    <footer className="relative border-t border-[var(--line)] px-5 py-5">
+      <div className="mx-auto flex max-w-md flex-col items-center justify-between gap-2 text-center text-[10px] text-[var(--faint)] sm:flex-row sm:text-left">
+        <Link href="/" className="font-mono uppercase tracking-[.16em] transition-colors hover:text-[var(--fg)]">felipeseabra.com.br</Link>
+        <span>© {new Date().getFullYear()} Felipe Seabra. All rights reserved.</span>
+      </div>
+    </footer>
+  </main>;
   if(!isAdmin)return <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-5 text-[var(--fg)]"><div className="w-full max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-8"><h1 className="text-4xl">Access denied.</h1><p className="mt-5 leading-7 text-[var(--muted)]">{status||"This account is not authorized to manage the CMS."}</p><button onClick={signOut} className="mt-8 rounded-full border border-[var(--line)] px-4 py-2 text-xs">Sign out</button></div></main>;
 
-  return <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
-    <header className="border-b border-[var(--line)] px-5 py-4 md:px-8"><div className="mx-auto flex max-w-[1500px] items-center justify-between"><div><p className="font-mono text-xs tracking-[.18em]">FS / DASHBOARD</p><p className="text-xs text-[var(--muted)]">{userEmail}</p></div><div className="flex items-center gap-3"><Link href="/" className="hidden items-center gap-2 text-xs text-[var(--muted)] md:flex"><ExternalLink size={14}/> View site</Link><button onClick={signOut} className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs"><LogOut size={14}/> Sign out</button></div></div></header>
+  return <>
+    {status&&<div className={`fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md ${statusType==="success"?"border-emerald-400/40 bg-emerald-400/10 text-emerald-200":statusType==="error"?"border-red-400/40 bg-red-400/10 text-red-200":"border-[var(--line)] bg-[var(--surface-strong)] text-[var(--fg)]"}`} role="status" aria-live="polite">{status}</div>}
+  <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+    <header className="border-b border-[var(--line)] px-5 py-4 md:px-8"><div className="mx-auto flex max-w-[1500px] items-center justify-between"><div><p className="font-mono text-xs tracking-[.18em]">FS / DASHBOARD</p><p className="text-xs text-[var(--muted)]">{userEmail}</p></div><div className="flex items-center gap-3"><Link href="/" className="hidden items-center gap-2 text-xs text-[var(--muted)] transition-all duration-200 hover:-translate-y-0.5 hover:text-[var(--fg)] md:flex"><ExternalLink size={14}/> View site</Link><button onClick={signOut} className="flex cursor-pointer items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--fg)] hover:bg-[var(--surface-strong)] active:translate-y-0 active:scale-[.98]"><LogOut size={14}/> Sign out</button></div></div></header>
     <div className="mx-auto grid max-w-[1500px] gap-8 px-5 py-8 md:grid-cols-[220px_1fr] md:px-8">
-      <aside className="md:sticky md:top-8 md:h-fit"><nav className="flex gap-2 overflow-x-auto md:block md:space-y-2">{(["projects","timeline","content","settings"] as Tab[]).map(item=><button key={item} onClick={()=>setTab(item)} className={`flex w-full rounded-xl px-4 py-3 text-left text-sm capitalize ${tab===item?"bg-[var(--surface-strong)]":"text-[var(--muted)] hover:bg-[var(--surface)]"}`}>{item}</button>)}</nav></aside>
-      <section><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">Content management</p><h1 className="mt-2 text-5xl tracking-[-.06em]">{tab}</h1></div><div className="flex items-center gap-3">{tab!=="projects"&&<div className="flex rounded-full border border-[var(--line)] p-1"><button onClick={()=>setLocale("en")} className={`rounded-full px-3 py-1 text-xs ${locale==="en"?"bg-[var(--fg)] text-[var(--bg)]":""}`}>EN</button><button onClick={()=>setLocale("pt")} className={`rounded-full px-3 py-1 text-xs ${locale==="pt"?"bg-[var(--fg)] text-[var(--bg)]":""}`}>PT</button></div>}{status&&<p className="text-xs text-[var(--muted)]">{status}</p>}</div></div>
+      <aside className="md:sticky md:top-8 md:h-fit"><nav className="flex gap-2 overflow-x-auto md:block md:space-y-2">{(["projects","timeline","content","settings"] as Tab[]).map(item=><button key={item} onClick={()=>setTab(item)} className={`flex w-full cursor-pointer rounded-xl px-4 py-3 text-left text-sm capitalize transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[var(--surface-strong)] active:translate-y-0 active:scale-[.99] ${tab===item?"bg-[var(--surface-strong)] shadow-[0_8px_24px_rgba(255,255,255,0.04)]":"text-[var(--muted)]"}`}>{item}</button>)}</nav></aside>
+      <section><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">Content management</p><h1 className="mt-2 text-5xl tracking-[-.06em]">{tab}</h1></div><div className="flex items-center gap-3">{tab!=="projects"&&<div className="flex rounded-full border border-[var(--line)] p-1"><button onClick={()=>setLocale("en")} className={`cursor-pointer rounded-full px-3 py-1 text-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${locale==="en"?"bg-[var(--fg)] text-[var(--bg)] shadow-[0_6px_18px_rgba(255,255,255,0.08)]":"text-[var(--muted)] hover:bg-[var(--surface-strong)]"}`}>EN</button><button onClick={()=>setLocale("pt")} className={`cursor-pointer rounded-full px-3 py-1 text-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${locale==="pt"?"bg-[var(--fg)] text-[var(--bg)] shadow-[0_6px_18px_rgba(255,255,255,0.08)]":"text-[var(--muted)] hover:bg-[var(--surface-strong)]"}`}>PT</button></div>}{status&&<p className="text-xs text-[var(--muted)]">{status}</p>}</div></div>
 
-      {tab==="projects"&&<div className="grid gap-6 xl:grid-cols-[1fr_400px]"><div className="space-y-3">{projects.map(p=><article key={p.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"><div className="flex items-start justify-between gap-4"><div><div className="flex gap-2"><span className="rounded-full border border-[var(--line)] px-2 py-1 font-mono text-[9px] uppercase text-[var(--faint)]">{p.published?"Published":"Draft"}</span>{p.featured&&<span className="rounded-full border border-[var(--line)] px-2 py-1 font-mono text-[9px] uppercase text-[var(--faint)]">Featured</span>}</div><h2 className="mt-3 text-2xl">{p.title}</h2><p className="text-sm text-[var(--muted)]">{p.category}</p></div><div className="flex gap-2"><button onClick={()=>{setEditingProject(p);setProjectForm(p)}} className="rounded-lg border border-[var(--line)] px-3 py-2 text-xs">Edit</button><button onClick={()=>void deleteProject(p.id)} aria-label={`Delete ${p.title}`} className="rounded-lg border border-[var(--line)] p-2"><Trash2 size={14}/></button></div></div><p className="mt-4 text-sm leading-6 text-[var(--muted)]">{p.description}</p><div className="mt-4 flex flex-wrap gap-2">{p.stack.map(s=><span key={s} className="font-mono text-[9px] text-[var(--faint)]">{s}</span>)}</div></article>)}</div><form onSubmit={saveProject} className="h-fit rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"><h2 className="text-xl">{editingProject?"Edit project":"New project"}</h2><div className="mt-5 space-y-4">{([["title","Title"],["slug","Slug"],["category","Category"],["description","Description"],["href","Website URL"],["github_url","GitHub URL"],["image_url","Image URL"]] as const).map(([key,label])=><input key={key} placeholder={label} value={key==="title"?projectForm.title:key==="slug"?projectForm.slug:key==="category"?projectForm.category:key==="description"?projectForm.description:key==="href"?projectForm.href:key==="github_url"?(projectForm.github_url??""):projectForm.image_url??""} onChange={e=>setProjectForm({...projectForm,[key]:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/>) }<input placeholder="Stack, comma separated" value={projectForm.stack.join(", ")} onChange={e=>setProjectForm({...projectForm,stack:e.target.value.split(",").map(v=>v.trim()).filter(Boolean)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><input type="number" placeholder="Order" value={projectForm.sort_order} onChange={e=>setProjectForm({...projectForm,sort_order:Number(e.target.value)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><div className="flex gap-5 text-xs text-[var(--muted)]"><label><input type="checkbox" checked={projectForm.featured} onChange={e=>setProjectForm({...projectForm,featured:e.target.checked})}/> Featured</label><label><input type="checkbox" checked={projectForm.published} onChange={e=>setProjectForm({...projectForm,published:e.target.checked})}/> Published</label></div></div><button type="submit" className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]"><Save size={15}/> Save project</button></form></div>}
+      {tab==="projects"&&<div className="grid gap-6 xl:grid-cols-[1fr_400px]"><div className="space-y-3">{projects.map(p=><article key={p.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--fg)]/20 hover:shadow-[0_16px_40px_rgba(0,0,0,0.18)]"><div className="flex items-start justify-between gap-4"><div><div className="flex gap-2"><span className="rounded-full border border-[var(--line)] px-2 py-1 font-mono text-[9px] uppercase text-[var(--faint)]">{p.published?"Published":"Draft"}</span>{p.featured&&<span className="rounded-full border border-[var(--line)] px-2 py-1 font-mono text-[9px] uppercase text-[var(--faint)]">Featured</span>}</div><h2 className="mt-3 text-2xl">{p.title}</h2><p className="text-sm text-[var(--muted)]">{p.category}</p></div><div className="flex gap-2"><button onClick={()=>{setEditingProject(p);setProjectForm(p)}} className="rounded-lg border border-[var(--line)] px-3 py-2 text-xs cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--fg)] hover:bg-[var(--surface-strong)] active:translate-y-0 active:scale-[.98]">Edit</button><button onClick={()=>void deleteProject(p.id)} aria-label={`Delete ${p.title}`} className="rounded-lg border border-[var(--line)] p-2 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-red-400/60 hover:bg-red-400/10 hover:text-red-200 active:translate-y-0 active:scale-[.96]"><Trash2 size={14}/></button></div></div><p className="mt-4 text-sm leading-6 text-[var(--muted)]">{p.description}</p><div className="mt-4 flex flex-wrap gap-2">{p.stack.map(s=><span key={s} className="font-mono text-[9px] text-[var(--faint)]">{s}</span>)}</div></article>)}</div><form onSubmit={saveProject} className="h-fit rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"><h2 className="text-xl">{editingProject?"Edit project":"New project"}</h2><div className="mt-5 space-y-4">{([["title","Title"],["slug","Slug"],["category","Category"],["description","Description"],["href","Website URL"],["github_url","GitHub URL"],["image_url","Image URL"]] as const).map(([key,label])=><input key={key} placeholder={label} value={key==="title"?projectForm.title:key==="slug"?projectForm.slug:key==="category"?projectForm.category:key==="description"?projectForm.description:key==="href"?projectForm.href:key==="github_url"?(projectForm.github_url??""):projectForm.image_url??""} onChange={e=>setProjectForm({...projectForm,[key]:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/>) }<input placeholder="Stack, comma separated" value={projectForm.stack.join(", ")} onChange={e=>setProjectForm({...projectForm,stack:e.target.value.split(",").map(v=>v.trim()).filter(Boolean)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/><input type="number" placeholder="Order" value={projectForm.sort_order} onChange={e=>setProjectForm({...projectForm,sort_order:Number(e.target.value)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/><div className="flex gap-5 text-xs text-[var(--muted)]"><label><input type="checkbox" checked={projectForm.featured} onChange={e=>setProjectForm({...projectForm,featured:e.target.checked})}/> Featured</label><label><input type="checkbox" checked={projectForm.published} onChange={e=>setProjectForm({...projectForm,published:e.target.checked})}/> Published</label></div></div><button type="submit" disabled={busy} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)] cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(255,255,255,0.08)] active:translate-y-0 active:scale-[.99] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"><Save size={15}/> {busy?"Saving...":"Save project"}</button></form></div>}
 
-      {tab==="timeline"&&<div className="grid gap-6 xl:grid-cols-[1fr_400px]"><div className="space-y-3">{timeline.filter(x=>x.locale===locale).map(item=><article key={item.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"><div className="flex justify-between gap-4"><div><span className="font-mono text-[9px] text-[var(--faint)]">{item.period}</span><h2 className="mt-2 text-2xl">{item.title}</h2></div><div className="flex gap-2"><button onClick={()=>{setEditingTimeline(item);setTimelineForm(item)}} className="rounded-lg border border-[var(--line)] px-3 py-2 text-xs">Edit</button><button onClick={()=>void deleteTimeline(item.id)} className="rounded-lg border border-[var(--line)] p-2"><Trash2 size={14}/></button></div></div><p className="mt-3 text-sm leading-6 text-[var(--muted)]">{item.body}</p></article>)}</div><form onSubmit={saveTimeline} className="h-fit rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"><h2 className="text-xl">{editingTimeline?"Edit timeline":"New timeline entry"}</h2><div className="mt-5 space-y-4"><input placeholder="Chapter" value={timelineForm.chapter} onChange={e=>setTimelineForm({...timelineForm,chapter:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><input placeholder="Period" value={timelineForm.period} onChange={e=>setTimelineForm({...timelineForm,period:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><input placeholder="Title" value={timelineForm.title} onChange={e=>setTimelineForm({...timelineForm,title:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><textarea placeholder="Body" rows={5} value={timelineForm.body} onChange={e=>setTimelineForm({...timelineForm,body:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><input placeholder="Tags, comma separated" value={timelineForm.tags.join(", ")} onChange={e=>setTimelineForm({...timelineForm,tags:e.target.value.split(",").map(v=>v.trim()).filter(Boolean)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><input type="number" placeholder="Order" value={timelineForm.sort_order} onChange={e=>setTimelineForm({...timelineForm,sort_order:Number(e.target.value)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm"/><label className="text-xs text-[var(--muted)]"><input type="checkbox" checked={timelineForm.published} onChange={e=>setTimelineForm({...timelineForm,published:e.target.checked})}/> Published</label></div><button type="submit" className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]"><Save size={15}/> Save timeline</button></form></div>}
+      {tab==="timeline"&&<div className="grid gap-6 xl:grid-cols-[1fr_400px]"><div className="space-y-3">{timeline.filter(x=>x.locale===locale).map(item=><article key={item.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--fg)]/20 hover:shadow-[0_16px_40px_rgba(0,0,0,0.18)]"><div className="flex justify-between gap-4"><div><span className="font-mono text-[9px] text-[var(--faint)]">{item.period}</span><h2 className="mt-2 text-2xl">{item.title}</h2></div><div className="flex gap-2"><button onClick={()=>{setEditingTimeline(item);setTimelineForm(item)}} className="rounded-lg border border-[var(--line)] px-3 py-2 text-xs cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--fg)] hover:bg-[var(--surface-strong)] active:translate-y-0 active:scale-[.98]">Edit</button><button onClick={()=>void deleteTimeline(item.id)} className="rounded-lg border border-[var(--line)] p-2 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-red-400/60 hover:bg-red-400/10 hover:text-red-200 active:translate-y-0 active:scale-[.96]"><Trash2 size={14}/></button></div></div><p className="mt-3 text-sm leading-6 text-[var(--muted)]">{item.body}</p></article>)}</div><form onSubmit={saveTimeline} className="h-fit rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"><h2 className="text-xl">{editingTimeline?"Edit timeline":"New timeline entry"}</h2><div className="mt-5 space-y-4"><input placeholder="Chapter" value={timelineForm.chapter} onChange={e=>setTimelineForm({...timelineForm,chapter:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/><input placeholder="Period" value={timelineForm.period} onChange={e=>setTimelineForm({...timelineForm,period:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/><input placeholder="Title" value={timelineForm.title} onChange={e=>setTimelineForm({...timelineForm,title:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/><textarea placeholder="Body" rows={5} value={timelineForm.body} onChange={e=>setTimelineForm({...timelineForm,body:e.target.value})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/><input placeholder="Tags, comma separated" value={timelineForm.tags.join(", ")} onChange={e=>setTimelineForm({...timelineForm,tags:e.target.value.split(",").map(v=>v.trim()).filter(Boolean)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/><input type="number" placeholder="Order" value={timelineForm.sort_order} onChange={e=>setTimelineForm({...timelineForm,sort_order:Number(e.target.value)})} className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm transition-all duration-200 placeholder:text-[var(--faint)] focus:border-[var(--fg)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--fg)]/10"/><label className="text-xs text-[var(--muted)]"><input type="checkbox" checked={timelineForm.published} onChange={e=>setTimelineForm({...timelineForm,published:e.target.checked})}/> Published</label></div><button type="submit" disabled={busy} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)] cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(255,255,255,0.08)] active:translate-y-0 active:scale-[.99] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"><Save size={15}/> {busy?"Saving...":"Save timeline"}</button></form></div>}
 
-      {tab==="content"&&<div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6"><div className="mb-6"><h2 className="text-2xl">Site content</h2><p className="mt-2 text-sm text-[var(--muted)]">Edit the main public copy without changing code.</p></div><div className="grid gap-5 md:grid-cols-2">{contentFields.map(([section,field,label])=><label key={`${section}.${field}`} className="block text-sm text-[var(--muted)]"><span className="font-mono text-[9px] uppercase tracking-[.15em] text-[var(--faint)]">{section}</span><span className="mt-1 block">{label}</span><textarea rows={field==="description"||field==="body"||field==="intro"||field==="title"?3:2} value={value(section,field)} onChange={e=>setValue(section,field,e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--fg)]"/></label>)}</div><button onClick={()=>void saveContent()} className="mt-6 flex items-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]"><Save size={15}/> Save content</button></div>}
+      {tab==="content"&&<div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6"><div className="mb-6"><h2 className="text-2xl">Site content</h2><p className="mt-2 text-sm text-[var(--muted)]">Edit the main public copy without changing code.</p></div><div className="grid gap-5 md:grid-cols-2">{contentFields.map(([section,field,label])=><label key={`${section}.${field}`} className="block text-sm text-[var(--muted)]"><span className="font-mono text-[9px] uppercase tracking-[.15em] text-[var(--faint)]">{section}</span><span className="mt-1 block">{label}</span><textarea rows={field==="description"||field==="body"||field==="intro"||field==="title"?3:2} value={value(section,field)} onChange={e=>setValue(section,field,e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--fg)]"/></label>)}</div><button onClick={()=>void saveContent()} disabled={busy} className="mt-6 flex items-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)] cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(255,255,255,0.08)] active:translate-y-0 active:scale-[.99] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"><Save size={15}/> {busy?"Saving...":"Save content"}</button></div>}
 
-      {tab==="settings"&&<div className="max-w-2xl rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6"><h2 className="text-2xl">Social links</h2><p className="mt-2 text-sm text-[var(--muted)]">These links are used by the public site and structured data.</p><div className="mt-6 space-y-5">{(["github","linkedin"] as const).map(field=><label key={field} className="block text-sm text-[var(--muted)]">{field==="github"?"GitHub URL":"LinkedIn URL"}<input value={value("social",field)} onChange={e=>setValue("social",field,e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--fg)]"/></label>)}</div><button onClick={()=>void saveSocial()} className="mt-6 flex items-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)]"><Save size={15}/> Save settings</button></div>}
+      {tab==="settings"&&<div className="max-w-2xl rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6"><h2 className="text-2xl">Social links</h2><p className="mt-2 text-sm text-[var(--muted)]">These links are used by the public site and structured data.</p><div className="mt-6 space-y-5">{(["github","linkedin"] as const).map(field=><label key={field} className="block text-sm text-[var(--muted)]">{field==="github"?"GitHub URL":"LinkedIn URL"}<input value={value("social",field)} onChange={e=>setValue("social",field,e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--fg)]"/></label>)}</div><button onClick={()=>void saveSocial()} disabled={busy} className="mt-6 flex items-center gap-2 rounded-xl bg-[var(--fg)] px-4 py-3 text-sm text-[var(--bg)] cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(255,255,255,0.08)] active:translate-y-0 active:scale-[.99] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"><Save size={15}/> {busy?"Saving...":"Save settings"}</button></div>}
       </section>
     </div>
-  </main>;
+  </main></>;
 }
