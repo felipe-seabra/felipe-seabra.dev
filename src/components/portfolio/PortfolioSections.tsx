@@ -1,0 +1,39 @@
+"use client";
+
+import {useScroll,useTransform,motion} from "framer-motion";
+import {ArrowUpRight} from "lucide-react";
+import {Reveal} from "./Reveal";
+import type {PortfolioText,ProjectItem,SocialLink,TimelineItem} from "./types";
+import {copy} from "@/lib/i18n";
+
+type Copy=(typeof copy)[keyof typeof copy];
+
+export function PortfolioSections({timeline,projectItems,cms,text,t,socialLinks}:{timeline:readonly TimelineItem[];projectItems:readonly ProjectItem[];cms:Record<string,string>;text:PortfolioText;t:Copy;socialLinks:SocialLink[]}){
+  return <>
+  <section id="journey" className="border-y border-[var(--line)] px-5 py-24 md:px-8 md:py-36"><div className="mx-auto max-w-[1400px]">
+      <Reveal><div className="mb-20 max-w-3xl"><span className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">{text("timeline", "label", t.timeline.label)}</span><h2 className="mt-5 text-5xl tracking-[-.06em] md:text-8xl">{text("timeline", "title", t.timeline.title)}</h2><p className="mt-7 max-w-2xl text-base leading-7 text-[var(--muted)] md:text-lg">{text("timeline", "intro", t.timeline.intro)}</p></div></Reveal>
+      <div className="relative"><motion.div style={{ scaleY: useTransform(useScroll().scrollYProgress, [0.08, 0.48], [0, 1]) }} className="timeline-line absolute bottom-0 left-[11px] top-0 w-px origin-top md:left-1/2" />
+        {timeline.map((entry, index) => <Reveal key={entry.chapter} delay={index * .05} className="relative mb-16 last:mb-0 md:mb-24"><div className="grid gap-8 md:grid-cols-2 md:gap-20">
+          <div className={index % 2 === 0 ? "md:pr-20" : "md:order-2 md:pl-20"}><div className="relative pl-10 md:pl-0"><motion.div animate={{ scale: [1, 1.18, 1] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }} className="timeline-dot absolute left-[-1px] top-1 h-6 w-6 rounded-full md:hidden" /><span className="font-mono text-[10px] uppercase tracking-[.2em] text-[var(--faint)]">{entry.period}</span><h3 className="mt-3 text-3xl tracking-[-.04em] md:text-5xl">{entry.title}</h3></div></div>
+          <div className={index % 2 === 0 ? "md:pl-20" : "md:order-1 md:pr-20"}><div className="relative pl-10 md:pl-0"><motion.div animate={{ scale: [1, 1.18, 1] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }} className="timeline-dot absolute left-[-1px] top-1 hidden h-6 w-6 rounded-full md:block" /><p className="max-w-xl text-base leading-7 text-[var(--muted)]">{entry.body}</p><div className="mt-6 flex flex-wrap gap-2">{entry.tags.map(tag => <span key={tag} className="rounded-full border border-[var(--line)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-[.12em] text-[var(--faint)]">{tag}</span>)}</div></div></div>
+        </div></Reveal>)}
+      </div>
+    </div></section>
+
+    <section id="work" className="relative px-5 py-24 md:px-8 md:py-36"><motion.div style={{ x: useTransform(useScroll().scrollYProgress, [.15, .55], [-80, 80]), opacity: useTransform(useScroll().scrollYProgress, [.15, .3, .55], [0, .22, 0]) }} className="pointer-events-none absolute right-[-10%] top-1/3 h-72 w-72 rounded-full bg-[var(--accent)] blur-[100px]" />
+      <div className="mx-auto max-w-[1400px]"><Reveal><div className="mb-14 max-w-3xl"><span className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">{text("work", "label", t.work.label)}</span><h2 className="mt-5 text-5xl tracking-[-.06em] md:text-8xl">{text("work", "title", t.work.title)}</h2><p className="mt-7 text-base leading-7 text-[var(--muted)] md:text-lg">{text("work", "intro", t.work.intro)}</p></div></Reveal>
+        {projectItems.map((project, index) => <Reveal key={project.id ?? project.title} delay={index * .05}><motion.a href={project.href} target={project.href.startsWith("http") ? "_blank" : undefined} rel={project.href.startsWith("http") ? "noreferrer" : undefined} whileHover={{ x: 10, y: -5, scale: 1.01 }} transition={{ duration: .35, ease: [.22, 1, .36, 1] }} className="group grid gap-5 rounded-xl border-t border-[var(--line)] py-8 md:grid-cols-[70px_1fr_280px_70px] md:items-center">
+          <span className="font-mono text-xs text-[var(--faint)]">{project.number ?? String(index + 1).padStart(2, "0")}</span><div><span className="text-xs uppercase tracking-[.18em] text-[var(--faint)]">{project.category}</span><h3 className="mt-2 text-3xl tracking-[-.04em] md:text-5xl">{project.title}</h3><div className="mt-5 flex flex-wrap gap-2">{project.stack.map(tag => <span key={tag} className="font-mono text-[9px] text-[var(--faint)]">{tag}</span>)}</div></div><p className="text-sm leading-6 text-[var(--muted)]">{project.description}</p><span className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] transition-transform duration-300 group-hover:rotate-45"><ArrowUpRight size={17} /></span>
+        </motion.a></Reveal>)}
+      </div>
+    </section>
+
+    <section id="about" className="border-t border-[var(--line)] px-5 py-24 md:px-8 md:py-36"><div className="mx-auto grid max-w-[1400px] gap-14 md:grid-cols-[.65fr_1.35fr]"><Reveal><span className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">{text("about", "label", t.about.label)}</span></Reveal><Reveal><p className="text-3xl leading-[1.08] tracking-[-.05em] md:text-6xl">{text("about", "title", t.about.title)}</p><p className="mt-10 max-w-2xl text-base leading-7 text-[var(--muted)] md:text-lg">{text("about", "body", t.about.body)}</p><div className="mt-10 inline-flex rounded-full border border-[var(--line)] px-4 py-2 font-mono text-[10px] uppercase tracking-[.15em] text-[var(--faint)]">{text("about", "experience", t.about.experience)}</div></Reveal></div></section>
+
+    <section className="px-5 pb-24 md:px-8 md:pb-36"><div className="mx-auto grid max-w-[1400px] gap-5 md:grid-cols-2 lg:grid-cols-4">{t.capabilities.map((skill, index) => <Reveal key={skill} delay={index * .04}><div className="border-t border-[var(--line)] pt-5"><span className="font-mono text-[10px] text-[var(--faint)]">0{index + 1}</span><p className="mt-7 text-lg text-[var(--muted)]">{cms[`capabilities.${index}`] ?? skill}</p></div></Reveal>)}</div></section>
+
+    <section id="contact" className="relative border-t border-[var(--line)] px-5 py-28 md:px-8 md:py-44"><div className="glow absolute inset-0" /><div className="noise absolute inset-0 opacity-[.08]" /><div className="relative mx-auto max-w-[1400px]"><Reveal><span className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">{text("contact", "label", t.contact.label)}</span><h2 className="mt-8 max-w-6xl text-[13vw] font-medium leading-[.8] tracking-[-.09em] md:text-[9vw]">{text("contact", "title", t.contact.title)}</h2><p className="mt-10 max-w-xl text-base leading-7 text-[var(--muted)] md:text-lg">{text("contact", "body", t.contact.body)}</p></Reveal><Reveal delay={.08}><div className="mt-10 flex flex-wrap items-center gap-5"><a href={`mailto:${text("contact", "email", "hello@felipeseabra.com.br")}`} className="inline-flex items-center gap-3 text-xl transition-opacity hover:opacity-60 md:text-2xl">{text("contact", "cta", t.contact.cta)}<ArrowUpRight size={19} /></a>{socialLinks.map(link => { const Icon = link.icon; return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs"><Icon size={14} />{link.label}</a> })}</div></Reveal></div></section>
+
+  <footer className="border-t border-[var(--line)] px-5 py-7 md:px-8"><div className="mx-auto flex max-w-[1400px] flex-wrap justify-between gap-3 font-mono text-[10px] uppercase tracking-[.18em] text-[var(--faint)]"><span>© {new Date().getFullYear()} Felipe Seabra</span><span>{text("hero","location",t.hero.location)}</span><span>Next.js / TypeScript</span></div></footer>
+  </>;
+}
