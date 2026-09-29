@@ -58,19 +58,11 @@ function LanguageSwitch({ locale, onToggle }: { locale: Locale; onToggle: () => 
       aria-label="Language"
       aria-pressed={isPortuguese}
       whileTap={{ scale: 0.96 }}
-      className="relative flex h-8 w-[62px] items-center rounded-full border border-[var(--line)] bg-[var(--surface)] p-1 text-[9px] font-medium uppercase tracking-[.12em] text-[var(--muted)]"
+      className="group flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.16em] text-[var(--muted)]"
     >
-      <span className="absolute inset-0 flex items-center justify-between px-2">
-        <span className={isPortuguese ? "opacity-35" : "opacity-70"}>EN</span>
-        <span className={isPortuguese ? "opacity-70" : "opacity-35"}>PT</span>
-      </span>
-      <motion.span
-        animate={{ x: isPortuguese ? 30 : 0 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--fg)] text-[var(--bg)] shadow-sm"
-      >
-        {isPortuguese ? "PT" : "EN"}
-      </motion.span>
+      <span className={isPortuguese ? "opacity-40 transition-opacity" : "text-[var(--fg)] transition-opacity"}>EN</span>
+      <span aria-hidden="true" className="text-[var(--faint)]">/</span>
+      <span className={isPortuguese ? "text-[var(--fg)] transition-opacity" : "opacity-40 transition-opacity"}>PT</span>
     </motion.button>
   );
 }
@@ -84,20 +76,21 @@ function ThemeSwitch({ theme, onToggle }: { theme: Theme; onToggle: () => void }
       onClick={onToggle}
       aria-label="Theme"
       aria-pressed={isLight}
-      whileTap={{ scale: 0.96 }}
-      className="relative flex h-8 w-[62px] items-center rounded-full border border-[var(--line)] bg-[var(--surface)] p-1 text-[9px] font-medium uppercase tracking-[.1em] text-[var(--muted)]"
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.9 }}
+      className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:text-[var(--fg)]"
     >
-      <span className="absolute inset-0 flex items-center justify-between px-2">
-        <Moon size={11} className={isLight ? "opacity-35" : "opacity-70"} />
-        <Sun size={11} className={isLight ? "opacity-70" : "opacity-35"} />
-      </span>
-      <motion.span
-        animate={{ x: isLight ? 30 : 0 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--fg)] text-[var(--bg)] shadow-sm"
-      >
-        {isLight ? <Sun size={12} /> : <Moon size={12} />}
-      </motion.span>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={theme}
+          initial={{ opacity: 0, rotate: -20, scale: 0.7 }}
+          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+          exit={{ opacity: 0, rotate: 20, scale: 0.7 }}
+          transition={{ duration: 0.18 }}
+        >
+          {isLight ? <Sun size={15} strokeWidth={1.7} /> : <Moon size={15} strokeWidth={1.7} />}
+        </motion.span>
+      </AnimatePresence>
     </motion.button>
   );
 }
