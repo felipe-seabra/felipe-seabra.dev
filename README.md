@@ -1,103 +1,273 @@
-# Felipe Seabra
+# Felipe Seabra — Portfolio
 
-Personal portfolio for a Front-End focused Full-Stack Developer based in Dublin, Ireland.
+Personal portfolio and content-managed career timeline for Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.
 
-The site presents the career as a visual timeline with English as the default language, Portuguese as an available interface language, dark/light themes and code-driven motion.
+Production: https://felipeseabra.com.br
 
-## Development
+The project is a server-first Next.js application with a private CMS, Supabase authentication and PostgreSQL, Prisma database access, bilingual public routes, motion-driven UI, structured SEO metadata, automated quality gates, and protected GitHub workflows.
 
-```bash
+## Overview
+
+The application has two primary surfaces:
+
+- Public portfolio: career timeline, projects, about/contact content, bilingual routing, responsive UI, theme switching and motion.
+- Private CMS: authenticated dashboard for managing projects, timeline entries, public copy and social/SEO-related content.
+
+Public routes:
+
+- / → English
+- /pt → Portuguese
+
+Private route:
+
+- /dashboard → CMS
+
+## Architecture
+
+~~~text
+Browser
+  │
+  ├── Public routes
+  │     ├── /
+  │     └── /pt
+  │           │
+  │           └── Server-rendered portfolio
+  │
+  └── /dashboard
+        │
+        ├── Supabase Auth
+        │
+        └── Server Actions
+              │
+              └── Prisma
+                    │
+                    └── PostgreSQL / Supabase
+~~~
+
+Detailed architecture: docs/ARCHITECTURE.md
+
+## Technology Stack
+
+| Layer | Technology |
+| --- | --- |
+| Framework | Next.js 16 |
+| UI | React 19 |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 |
+| Motion | Framer Motion + Lenis |
+| Icons | Lucide React |
+| Database | PostgreSQL via Supabase |
+| ORM | Prisma |
+| Authentication | Supabase Auth |
+| API | Next.js Route Handler |
+| Tests | Vitest + Testing Library |
+| CI | GitHub Actions |
+| Hosting | Vercel |
+| Source control | GitHub |
+
+## Repository Structure
+
+~~~text
+.
+├── .github/workflows/ci.yml       # CI quality gates
+├── prisma/
+│   ├── schema.prisma              # Database models
+│   ├── seed.ts                    # Seed data
+│   └── migrations/                # Prisma migrations
+├── public/                        # Static assets and machine-readable metadata
+├── src/
+│   ├── app/
+│   │   ├── api/content/           # Public CMS API
+│   │   ├── dashboard/             # Private CMS
+│   │   ├── pt/                    # Portuguese route
+│   │   ├── layout.tsx             # Global metadata/layout
+│   │   ├── robots.ts              # Robots policy
+│   │   └── sitemap.ts             # Sitemap
+│   ├── components/portfolio/      # Public UI and interaction components
+│   └── lib/                       # i18n, Prisma and Supabase infrastructure
+├── supabase/                      # Supabase SQL schema/reference
+├── tests/                         # Automated tests
+├── proxy.ts                       # Request/session/locale handling
+└── package.json
+~~~
+
+## Local Development
+
+### Requirements
+
+- Node.js 24
+- npm
+- A PostgreSQL/Supabase database for CMS features
+
+### Install
+
+~~~bash
 npm install
+~~~
+
+### Environment
+
+~~~bash
+cp .env.example .env.local
+~~~
+
+Configure the required Supabase and database variables described in .env.example.
+
+The Prisma datasource uses DATABASE_URL for application/runtime connections and DIRECT_URL for direct database access and migrations.
+
+### Run
+
+~~~bash
 npm run dev
-```
+~~~
 
-Open `http://localhost:3000`.
+Open http://localhost:3000.
 
-## Quality
+## Quality Gates
 
-```bash
+~~~bash
 npm run lint
 npm run typecheck
 npm run test
 npm run build
-```
+npm audit --audit-level=high
+~~~
 
-## Stack
+CI enforces Lint, Typecheck, Tests and Security Audit, followed by Build.
 
-Next.js 16, React 19, TypeScript, Tailwind CSS 4, Framer Motion, Lenis, Lucide, Supabase, Vitest and Testing Library.
+## CMS
 
-## Motion system
+The dashboard at /dashboard provides authenticated content management for:
 
-The public site uses layered motion rather than static transitions:
+- Projects
+- Career timeline entries
+- Public site copy
+- Social links
+- English and Portuguese content
 
-- Lenis provides smooth scrolling.
-- Framer Motion handles entrance/reveal animations.
-- Scroll-linked parallax is driven by `useScroll` and `useTransform`.
-- A scroll progress indicator tracks the page.
-- Timeline markers pulse continuously.
-- Project rows respond to hover.
-- The avatar floats subtly and reacts to hover.
-- `prefers-reduced-motion` is respected.
+Authorization is enforced on the server. A valid Supabase user must also exist in the admins table before dashboard mutations are permitted.
 
-The implementation follows the same general visual direction as the supplied reference: cinematic sections, scroll-driven movement, layered depth and deliberate micro-interactions.
+Database Row Level Security is enabled for the CMS tables.
+
+See docs/CMS.md and docs/SECURITY.md.
+
+## Internationalization
+
+Supported locales:
+
+- English: /
+- Portuguese: /pt
+
+CMS content is locale-aware where appropriate.
+
+## Motion and Interaction
+
+The public UI uses layered motion:
+
+- Lenis smooth scrolling
+- Framer Motion entrance/reveal transitions
+- Scroll-linked hero parallax
+- Scroll progress indicator
+- Floating/reactive avatar
+- Pulsing timeline markers
+- Project hover interactions
+- Back-to-top interaction
+- Reduced-motion support
 
 ## SEO
 
 The application includes:
 
-- Metadata API title and description.
-- Canonical URL.
-- Open Graph and Twitter metadata.
-- Favicon and web manifest.
-- Dynamic `/sitemap.xml`.
-- Dynamic `/robots.txt` with dashboard excluded.
-- JSON-LD Person structured data.
-- `llms.txt` for machine-readable site context.
-- Dashboard route marked `noindex,nofollow`.
+- Metadata API titles and descriptions
+- Canonical URLs
+- Open Graph metadata and locale-specific OG images
+- Twitter cards
+- Favicon and web manifest
+- Dynamic sitemap
+- Dynamic robots policy
+- JSON-LD structured data
+- llms.txt
+- noindex,nofollow for the dashboard
 
-## Content dashboard
+The canonical production domain is https://felipeseabra.com.br.
 
-The private dashboard is available at:
+## Testing
 
-`/dashboard`
+The suite covers public content API behavior, CMS authorization logic, admin/non-admin access, controlled error handling, locale validation and public page rendering.
 
-It is designed around Supabase Auth + Postgres + Row Level Security.
+Application tests mock infrastructure boundaries such as Prisma and Supabase. Database-level RLS behavior should therefore be tested separately.
 
-### Local setup
+## Security Model
 
-Copy the example environment file:
+Security is based on defense in depth:
 
-```bash
-cp .env.example .env.local
-```
+1. Supabase Auth establishes identity.
+2. The server verifies the authenticated user.
+3. The admins table determines CMS authorization.
+4. Server Actions perform privileged mutations only after authorization.
+5. PostgreSQL RLS provides database-level authorization.
+6. Public API queries only published portfolio records where applicable.
+7. Dashboard metadata prevents indexing.
+8. CI performs dependency auditing.
 
-Add:
+See docs/SECURITY.md.
 
-```text
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-```
+## Git and Delivery Workflow
 
-Then run the SQL in `supabase/schema.sql`.
+The main branch is protected.
 
-The schema includes:
+~~~text
+feature branch
+    ↓
+focused implementation
+    ↓
+single logical commit where practical
+    ↓
+Pull Request
+    ↓
+CI quality gates
+    ↓
+manual review
+    ↓
+manual merge to main
+~~~
 
-- `admins`
-- `projects`
-- `timeline_entries`
-- `site_content`
+Required checks:
 
-Published portfolio data is readable publicly. Mutations are restricted to users present in the `admins` table.
+- Lint
+- Typecheck
+- Tests
+- Security Audit
+- Build
 
-The dashboard currently provides authentication, project CRUD and hero content editing. Timeline editing is intentionally the next CMS increment.
+Auto-merge is disabled. Direct changes to main are not part of the workflow.
 
-## Languages and themes
+## Deployment
 
-- English is the default.
-- Portuguese can be toggled from the header.
-- Dark and light themes can be toggled from the header.
-- Preferences are persisted in local storage.
+Production is designed for Vercel with Supabase PostgreSQL/Auth.
 
-## Git workflow
+Before deployment:
 
-Work should be developed in a feature branch and submitted through a pull request. The protected `main` branch requires the CI quality gates before merging.
+1. Configure production environment variables.
+2. Apply Prisma migrations.
+3. Verify Supabase Auth configuration.
+4. Verify the production admin account.
+5. Run the full quality gate.
+6. Deploy the protected main branch.
+7. Verify public routes, CMS, sitemap and robots endpoints.
+
+See docs/DEPLOYMENT.md.
+
+## Documentation Map
+
+| Document | Purpose |
+| --- | --- |
+| docs/ARCHITECTURE.md | Application architecture and data flows |
+| docs/CMS.md | CMS behavior and data model |
+| docs/DEVELOPMENT.md | Local development and engineering workflow |
+| docs/DEPLOYMENT.md | Production deployment and verification |
+| docs/SECURITY.md | Security model, audit findings and hardening |
+
+## License
+
+This repository contains a personal portfolio. Unless a separate license is added, the source code and content remain the property of Felipe Seabra.
