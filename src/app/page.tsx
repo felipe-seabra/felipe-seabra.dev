@@ -58,11 +58,11 @@ function LanguageSwitch({ locale, onToggle }: { locale: Locale; onToggle: () => 
       aria-label="Language"
       aria-pressed={isPortuguese}
       whileTap={{ scale: 0.96 }}
-      className="group flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.16em] text-[var(--muted)]"
+      className="group relative flex cursor-pointer items-center gap-2 font-mono text-[10px] uppercase tracking-[.16em] text-[var(--muted)]"
     >
-      <span className={isPortuguese ? "opacity-40 transition-opacity" : "text-[var(--fg)] transition-opacity"}>EN</span>
+      <motion.span whileHover={{ y: -1 }} transition={{ duration: 0.18 }} className={isPortuguese ? "opacity-40 transition-opacity" : "text-[var(--fg)] transition-opacity"}>EN</motion.span>
       <span aria-hidden="true" className="text-[var(--faint)]">/</span>
-      <span className={isPortuguese ? "text-[var(--fg)] transition-opacity" : "opacity-40 transition-opacity"}>PT</span>
+      <motion.span whileHover={{ y: -1 }} transition={{ duration: 0.18 }} className={isPortuguese ? "text-[var(--fg)] transition-opacity" : "opacity-40 transition-opacity"}>PT</motion.span>
     </motion.button>
   );
 }
@@ -78,14 +78,15 @@ function ThemeSwitch({ theme, onToggle }: { theme: Theme; onToggle: () => void }
       aria-pressed={isLight}
       whileHover={{ y: -1 }}
       whileTap={{ scale: 0.9 }}
-      className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:text-[var(--fg)]"
+      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--fg)]"
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={theme}
-          initial={{ opacity: 0, rotate: -20, scale: 0.7 }}
+          initial={{ opacity: 0, rotate: -35, scale: 0.7 }}
           animate={{ opacity: 1, rotate: 0, scale: 1 }}
-          exit={{ opacity: 0, rotate: 20, scale: 0.7 }}
+          exit={{ opacity: 0, rotate: 35, scale: 0.7 }}
+          whileHover={{ rotate: 15, scale: 1.12 }}
           transition={{ duration: 0.18 }}
         >
           {isLight ? <Sun size={15} strokeWidth={1.7} /> : <Moon size={15} strokeWidth={1.7} />}
