@@ -55,7 +55,7 @@ function LanguageSwitch({ locale, onToggle }: { locale: Locale; onToggle: () => 
     <motion.button
       type="button"
       onClick={onToggle}
-      aria-label={isPortuguese ? "Switch to English" : "Mudar para português"}
+      aria-label="Language"
       aria-pressed={isPortuguese}
       whileTap={{ scale: 0.96 }}
       className="relative flex h-8 w-[62px] items-center rounded-full border border-[var(--line)] bg-[var(--surface)] p-1 text-[9px] font-medium uppercase tracking-[.12em] text-[var(--muted)]"
@@ -82,7 +82,7 @@ function ThemeSwitch({ theme, onToggle }: { theme: Theme; onToggle: () => void }
     <motion.button
       type="button"
       onClick={onToggle}
-      aria-label={isLight ? "Switch to dark theme" : "Switch to light theme"}
+      aria-label="Theme"
       aria-pressed={isLight}
       whileTap={{ scale: 0.96 }}
       className="relative flex h-8 w-[62px] items-center rounded-full border border-[var(--line)] bg-[var(--surface)] p-1 text-[9px] font-medium uppercase tracking-[.1em] text-[var(--muted)]"
