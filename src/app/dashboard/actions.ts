@@ -4,6 +4,30 @@ import {createClient} from "@/lib/supabase/server";
 import {prisma} from "@/lib/prisma";
 import type {Locale} from "@/lib/i18n";
 
+function slugify(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "project";
+}
+
+async function createUniqueProjectSlug(title: string) {
+  const base = slugify(title);
+  let slug = base;
+  let suffix = 2;
+
+  while (await prisma.project.findUnique({ where: { slug } })) {
+    slug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
+}
+
 export type DashboardProject = {
   id: string;
   slug: string;
@@ -156,13 +180,17 @@ export async function saveProjectAction(data: Omit<DashboardProject, "id"> & { i
     return { success: false, error: auth.error, data: null };
   }
 
-  if (!data.slug?.trim() || !data.title?.trim()) {
-    return { success: false, error: "Title and slug are required.", data: null };
+  if (!data.title?.trim()) {
+    return { success: false, error: "Title is required.", data: null };
   }
 
   try {
+    const slug = data.id
+      ? undefined
+      : await createUniqueProjectSlug(data.title);
+
     const payload = {
-      slug: data.slug.trim(),
+      ...(slug ? { slug } : {}),
       title: data.title.trim(),
       category: data.category ?? "",
       description: data.description ?? "",
