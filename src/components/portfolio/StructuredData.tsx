@@ -1,0 +1,6 @@
+export function StructuredData({socialLinks,dateModified}:{socialLinks:{href:string}[];dateModified?:string}){
+ const person={"@type":"Person","@id":"https://felipeseabra.com.br/#person","name":"Felipe Seabra","url":"https://felipeseabra.com.br/","jobTitle":"Front-End focused Full-Stack Developer","description":"Front-End focused Full-Stack Developer based in Dublin, Ireland, working across technology, design and education.","image":"https://felipeseabra.com.br/avatar-caricature.webp","address":{"@type":"PostalAddress","addressLocality":"Dublin","addressCountry":"IE"},"sameAs":socialLinks.map(link=>link.href)};
+ const profile={"@type":"ProfilePage","@id":"https://felipeseabra.com.br/#profile","url":"https://felipeseabra.com.br/","name":"Felipe Seabra — Front-End Developer","mainEntity":person,...(dateModified?{dateModified}: {})};
+ const website={"@type":"WebSite","@id":"https://felipeseabra.com.br/#website","url":"https://felipeseabra.com.br/","name":"Felipe Seabra","publisher":{"@id":"https://felipeseabra.com.br/#person"}};
+ return <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify({"@context":"https://schema.org","@graph":[website,profile]})}}/>;
+}

@@ -1,0 +1,3 @@
+"use client";
+import {motion,useMotionValue,useSpring} from "framer-motion";import {useEffect} from "react";
+export function InteractiveCursor(){const x=useMotionValue(-200),y=useMotionValue(-200),springX=useSpring(x,{stiffness:120,damping:22,mass:.5}),springY=useSpring(y,{stiffness:120,damping:22,mass:.5});useEffect(()=>{const move=(e:PointerEvent)=>{x.set(e.clientX);y.set(e.clientY)};window.addEventListener("pointermove",move,{passive:true});return()=>window.removeEventListener("pointermove",move)},[x,y]);return <motion.div aria-hidden="true" style={{x:springX,y:springY}} className="pointer-events-none fixed left-0 top-0 z-40 hidden h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)] opacity-[.07] blur-3xl md:block"/>}
