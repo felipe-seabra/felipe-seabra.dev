@@ -5,8 +5,6 @@ import {copy,projects} from "@/lib/i18n";
 
 describe("PortfolioPageClient",()=>{
   it("renders the career timeline and portfolio controls",()=>{
-    const text=(section:string,field:string,fallback:string)=>fallback;
-
     render(
       <PortfolioPageClient
         locale="en"
