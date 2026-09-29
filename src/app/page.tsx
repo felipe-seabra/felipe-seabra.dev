@@ -48,6 +48,54 @@ function InteractiveCursor() {
   );
 }
 
+function LanguageSwitch({ locale, onToggle }: { locale: Locale; onToggle: () => void }) {
+  const isPortuguese = locale === "pt";
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onToggle}
+      aria-label="Language"
+      aria-pressed={isPortuguese}
+      whileTap={{ scale: 0.96 }}
+      className="group relative flex cursor-pointer items-center gap-2 font-mono text-[10px] uppercase tracking-[.16em] text-[var(--muted)]"
+    >
+      <motion.span whileHover={{ y: -1 }} transition={{ duration: 0.18 }} className={isPortuguese ? "opacity-40 transition-opacity" : "text-[var(--fg)] transition-opacity"}>EN</motion.span>
+      <span aria-hidden="true" className="text-[var(--faint)]">/</span>
+      <motion.span whileHover={{ y: -1 }} transition={{ duration: 0.18 }} className={isPortuguese ? "text-[var(--fg)] transition-opacity" : "opacity-40 transition-opacity"}>PT</motion.span>
+    </motion.button>
+  );
+}
+
+function ThemeSwitch({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
+  const isLight = theme === "light";
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onToggle}
+      aria-label="Theme"
+      aria-pressed={isLight}
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.9 }}
+      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--fg)]"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={theme}
+          initial={{ opacity: 0, rotate: -35, scale: 0.7 }}
+          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+          exit={{ opacity: 0, rotate: 35, scale: 0.7 }}
+          whileHover={{ rotate: 15, scale: 1.12 }}
+          transition={{ duration: 0.18 }}
+        >
+          {isLight ? <Sun size={15} strokeWidth={1.7} /> : <Moon size={15} strokeWidth={1.7} />}
+        </motion.span>
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
 function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   return <motion.div className={className} initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: .7, delay, ease: [.22, 1, .36, 1] }}>{children}</motion.div>;
 }
@@ -82,7 +130,7 @@ function Avatar() {
         <img
           src="/avatar-caricature.webp"
           alt="Caricature of Felipe Seabra with dark hair, full beard, headphones and hoodie"
-          className="relative z-10 w-full max-w-[620px] drop-shadow-[0_35px_80px_rgba(0,0,0,.42)]"
+          className="relative z-10 w-full max-w-[620px] drop-shadow-[0_35px_80px_rgba(0,0,0,.42)] [mask-image:linear-gradient(to_bottom,black_0%,black_72%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_72%,transparent_100%)]"
         />
       </motion.div>
     </motion.div>
@@ -169,8 +217,8 @@ export default function Home() {
         <nav className="hidden items-center gap-8 md:flex">
           {navItems.map(([key, href, label]) => <a key={key} href={href} className={`nav-link text-sm text-[var(--muted)] transition-colors hover:text-[var(--fg)] ${key === "journey" ? "nav-link-active" : ""}`}>{label}</a>)}
           {socialLinks.map(link => { const Icon = link.icon; return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="text-[var(--muted)] transition-colors hover:text-[var(--fg)]"><Icon size={18} /></a> })}
-          <button type="button" onClick={toggleLocale} className="text-sm text-[var(--muted)] hover:text-[var(--fg)]" aria-label={t.controls.language}>{locale === "en" ? "PT" : "EN"}</button>
-          <button type="button" onClick={toggleTheme} className="text-[var(--muted)] hover:text-[var(--fg)]" aria-label={t.controls.theme}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
+          <LanguageSwitch locale={locale} onToggle={toggleLocale} />
+          <ThemeSwitch theme={theme} onToggle={toggleTheme} />
           <a href={`mailto:${text("contact", "email", "hello@felipeseabra.com.br")}`} className="rounded-full border border-[var(--accent)] px-5 py-2.5 text-sm text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--bg)]">{text("nav", "talk", t.nav.talk)} <ArrowUpRight size={14} className="inline" /></a>
         </nav>
         <button type="button" aria-label={open ? t.controls.menuClose : t.controls.menuOpen} onClick={() => setOpen(!open)} className="md:hidden">{open ? <X size={20} /> : <Menu size={20} />}</button>
@@ -178,7 +226,10 @@ export default function Home() {
       <AnimatePresence>{open && <motion.nav initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="mx-auto mt-2 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-2xl md:hidden">
         {navItems.map(([key, href, label]) => <a onClick={() => setOpen(false)} key={key} href={href} className="block border-b border-[var(--line)] py-4 text-lg">{label}</a>)}
         <div className="flex gap-3 pt-5">{socialLinks.map(link => { const Icon = link.icon; return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs"><Icon size={14} />{link.label}</a> })}</div>
-        <div className="flex gap-3 pt-3"><button type="button" onClick={toggleLocale} className="rounded-full border border-[var(--line)] px-4 py-2 text-xs">{locale === "en" ? "Português" : "English"}</button><button type="button" onClick={toggleTheme} className="rounded-full border border-[var(--line)] px-4 py-2 text-xs">{theme === "dark" ? t.controls.light : t.controls.dark}</button></div>
+        <div className="flex items-center gap-3 pt-3">
+          <LanguageSwitch locale={locale} onToggle={toggleLocale} />
+          <ThemeSwitch theme={theme} onToggle={toggleTheme} />
+        </div>
       </motion.nav>}</AnimatePresence>
     </header>
     <div className="side-scroll-indicator" aria-hidden="true"><span>SCROLL</span><i /></div>
