@@ -185,12 +185,7 @@ export async function saveProjectAction(data: Omit<DashboardProject, "id"> & { i
   }
 
   try {
-    const slug = data.id
-      ? undefined
-      : await createUniqueProjectSlug(data.title);
-
-    const payload = {
-      ...(slug ? { slug } : {}),
+    const basePayload = {
       title: data.title.trim(),
       category: data.category ?? "",
       description: data.description ?? "",
@@ -207,11 +202,15 @@ export async function saveProjectAction(data: Omit<DashboardProject, "id"> & { i
     if (data.id) {
       saved = await prisma.project.update({
         where: { id: data.id },
-        data: payload,
+        data: basePayload,
       });
     } else {
+      const slug = await createUniqueProjectSlug(data.title);
       saved = await prisma.project.create({
-        data: payload,
+        data: {
+          ...basePayload,
+          slug,
+        },
       });
     }
 
