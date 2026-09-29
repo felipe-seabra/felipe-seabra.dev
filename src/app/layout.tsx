@@ -27,7 +27,7 @@ export const metadata:Metadata={
     card:"summary_large_image",
     images:[ogImage.url],
   },
-  icons:{icon:"/favicon.svg",shortcut:"/favicon.svg",apple:"/favicon.svg"},
+  icons:{icon:"/favicon.ico",shortcut:"/favicon.ico",apple:"/favicon.ico"},
   robots:{index:true,follow:true,googleBot:{index:true,follow:true,"max-image-preview":"large","max-snippet":-1,"max-video-preview":-1}},
 };
 
