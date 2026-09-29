@@ -82,7 +82,7 @@ function Avatar() {
         <img
           src="/avatar-caricature.webp"
           alt="Caricature of Felipe Seabra with dark hair, full beard, headphones and hoodie"
-          className="relative z-10 w-full max-w-[620px] drop-shadow-[0_35px_80px_rgba(0,0,0,.42)]"
+          className="relative z-10 w-full max-w-[620px] drop-shadow-[0_35px_80px_rgba(0,0,0,.42)] [mask-image:linear-gradient(to_bottom,black_0%,black_72%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_72%,transparent_100%)]"
         />
       </motion.div>
     </motion.div>
