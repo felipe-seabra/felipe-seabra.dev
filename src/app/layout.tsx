@@ -4,6 +4,12 @@ import "./globals.css";
 const siteUrl="https://felipeseabra.com.br";
 const defaultTitle="Felipe Seabra — Front-End Developer";
 const defaultDescription="Portfolio and career timeline of Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.";
+const ogImage={
+  url:`${siteUrl}/og-image.svg`,
+  width:1200,
+  height:630,
+  alt:"Felipe Seabra — Front-End focused Full-Stack Developer",
+};
 
 export const metadata:Metadata={
   metadataBase:new URL(siteUrl),
@@ -12,6 +18,15 @@ export const metadata:Metadata={
   authors:[{name:"Felipe Seabra",url:siteUrl}],
   creator:"Felipe Seabra",
   publisher:"Felipe Seabra",
+  openGraph:{
+    type:"website",
+    siteName:"Felipe Seabra",
+    images:[ogImage],
+  },
+  twitter:{
+    card:"summary_large_image",
+    images:[ogImage.url],
+  },
   icons:{icon:"/favicon.svg",shortcut:"/favicon.svg",apple:"/favicon.svg"},
   robots:{index:true,follow:true,googleBot:{index:true,follow:true,"max-image-preview":"large","max-snippet":-1,"max-video-preview":-1}},
 };
