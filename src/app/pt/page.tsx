@@ -3,13 +3,20 @@ import {StructuredData} from "@/components/portfolio/StructuredData";
 import {PortfolioPageClient} from "@/components/portfolio/PortfolioPageClient";
 import {getPortfolioData,siteMetadata} from "@/lib/portfolio-data";
 
+const ogImage={
+  url:"https://felipeseabra.com.br/og-image.svg",
+  width:1200,
+  height:630,
+  alt:"Felipe Seabra — Desenvolvedor Full-Stack com foco em Front-End",
+};
+
 export async function generateMetadata():Promise<Metadata>{
   const data=await getPortfolioData("pt");
   return {
     title:data.seo.title,
     description:data.seo.description,
     alternates:{canonical:siteMetadata.portugueseUrl,languages:{en:siteMetadata.englishUrl,pt:siteMetadata.portugueseUrl,"x-default":siteMetadata.englishUrl}},
-    openGraph:{locale:"pt_BR",url:siteMetadata.portugueseUrl,title:data.seo.title,description:data.seo.description},
+    openGraph:{type:"website",siteName:"Felipe Seabra",locale:"pt_BR",url:siteMetadata.portugueseUrl,title:data.seo.title,description:data.seo.description,images:[ogImage]},
   };
 }
 
