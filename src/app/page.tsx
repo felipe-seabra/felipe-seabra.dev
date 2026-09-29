@@ -80,7 +80,7 @@ function Avatar() {
           className="absolute inset-16 rounded-full bg-[var(--accent)] blur-3xl"
         />
         <img
-          src="/avatar-caricature.svg"
+          src="/avatar-caricature.webp"
           alt="Caricature of Felipe Seabra with dark hair, full beard, headphones and hoodie"
           className="relative z-10 w-full max-w-[620px] drop-shadow-[0_35px_80px_rgba(0,0,0,.42)]"
         />
@@ -162,7 +162,7 @@ export default function Home() {
 
   return <main id="top" className="overflow-hidden bg-[var(--bg)] text-[var(--fg)] transition-colors duration-500">
     <SmoothScroll /><ScrollProgress /><InteractiveCursor />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "ProfilePage", "mainEntity": { "@type": "Person", "@id": "https://felipeseabra.com.br/#person", "name": "Felipe Seabra", "url": "https://felipeseabra.com.br/", "jobTitle": "Front-End focused Full-Stack Developer", "image": "https://felipeseabra.com.br/avatar-caricature.svg", "address": { "@type": "PostalAddress", "addressLocality": "Dublin", "addressCountry": "IE" }, "sameAs": socialLinks.map(link => link.href) } }) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "ProfilePage", "mainEntity": { "@type": "Person", "@id": "https://felipeseabra.com.br/#person", "name": "Felipe Seabra", "url": "https://felipeseabra.com.br/", "jobTitle": "Front-End focused Full-Stack Developer", "image": "https://felipeseabra.com.br/avatar-caricature.webp", "address": { "@type": "PostalAddress", "addressLocality": "Dublin", "addressCountry": "IE" }, "sameAs": socialLinks.map(link => link.href) } }) }} />
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_82%,transparent)] backdrop-blur-xl">
       <div className="mx-auto flex h-[88px] max-w-[1400px] items-center justify-between px-5 md:px-8">
         <a href="#top" className="signature-logo text-[2rem] leading-none text-[var(--fg)]" aria-label="Felipe Seabra">Felipe Seabra<span className="ml-2 inline-block h-2 w-2 rounded-full bg-[var(--accent)] align-middle" /></a>
