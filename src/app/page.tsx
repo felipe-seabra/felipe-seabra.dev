@@ -48,6 +48,60 @@ function InteractiveCursor() {
   );
 }
 
+function LanguageSwitch({ locale, onToggle }: { locale: Locale; onToggle: () => void }) {
+  const isPortuguese = locale === "pt";
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onToggle}
+      aria-label={isPortuguese ? "Switch to English" : "Mudar para português"}
+      aria-pressed={isPortuguese}
+      whileTap={{ scale: 0.96 }}
+      className="relative flex h-8 w-[62px] items-center rounded-full border border-[var(--line)] bg-[var(--surface)] p-1 text-[9px] font-medium uppercase tracking-[.12em] text-[var(--muted)]"
+    >
+      <span className="absolute inset-0 flex items-center justify-between px-2">
+        <span className={isPortuguese ? "opacity-35" : "opacity-70"}>EN</span>
+        <span className={isPortuguese ? "opacity-70" : "opacity-35"}>PT</span>
+      </span>
+      <motion.span
+        animate={{ x: isPortuguese ? 30 : 0 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--fg)] text-[var(--bg)] shadow-sm"
+      >
+        {isPortuguese ? "PT" : "EN"}
+      </motion.span>
+    </motion.button>
+  );
+}
+
+function ThemeSwitch({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
+  const isLight = theme === "light";
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onToggle}
+      aria-label={isLight ? "Switch to dark theme" : "Switch to light theme"}
+      aria-pressed={isLight}
+      whileTap={{ scale: 0.96 }}
+      className="relative flex h-8 w-[62px] items-center rounded-full border border-[var(--line)] bg-[var(--surface)] p-1 text-[9px] font-medium uppercase tracking-[.1em] text-[var(--muted)]"
+    >
+      <span className="absolute inset-0 flex items-center justify-between px-2">
+        <Moon size={11} className={isLight ? "opacity-35" : "opacity-70"} />
+        <Sun size={11} className={isLight ? "opacity-70" : "opacity-35"} />
+      </span>
+      <motion.span
+        animate={{ x: isLight ? 30 : 0 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--fg)] text-[var(--bg)] shadow-sm"
+      >
+        {isLight ? <Sun size={12} /> : <Moon size={12} />}
+      </motion.span>
+    </motion.button>
+  );
+}
+
 function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   return <motion.div className={className} initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: .7, delay, ease: [.22, 1, .36, 1] }}>{children}</motion.div>;
 }
@@ -169,8 +223,8 @@ export default function Home() {
         <nav className="hidden items-center gap-8 md:flex">
           {navItems.map(([key, href, label]) => <a key={key} href={href} className={`nav-link text-sm text-[var(--muted)] transition-colors hover:text-[var(--fg)] ${key === "journey" ? "nav-link-active" : ""}`}>{label}</a>)}
           {socialLinks.map(link => { const Icon = link.icon; return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="text-[var(--muted)] transition-colors hover:text-[var(--fg)]"><Icon size={18} /></a> })}
-          <button type="button" onClick={toggleLocale} className="text-sm text-[var(--muted)] hover:text-[var(--fg)]" aria-label={t.controls.language}>{locale === "en" ? "PT" : "EN"}</button>
-          <button type="button" onClick={toggleTheme} className="text-[var(--muted)] hover:text-[var(--fg)]" aria-label={t.controls.theme}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
+          <LanguageSwitch locale={locale} onToggle={toggleLocale} />
+          <ThemeSwitch theme={theme} onToggle={toggleTheme} />
           <a href={`mailto:${text("contact", "email", "hello@felipeseabra.com.br")}`} className="rounded-full border border-[var(--accent)] px-5 py-2.5 text-sm text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--bg)]">{text("nav", "talk", t.nav.talk)} <ArrowUpRight size={14} className="inline" /></a>
         </nav>
         <button type="button" aria-label={open ? t.controls.menuClose : t.controls.menuOpen} onClick={() => setOpen(!open)} className="md:hidden">{open ? <X size={20} /> : <Menu size={20} />}</button>
@@ -178,7 +232,10 @@ export default function Home() {
       <AnimatePresence>{open && <motion.nav initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="mx-auto mt-2 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-2xl md:hidden">
         {navItems.map(([key, href, label]) => <a onClick={() => setOpen(false)} key={key} href={href} className="block border-b border-[var(--line)] py-4 text-lg">{label}</a>)}
         <div className="flex gap-3 pt-5">{socialLinks.map(link => { const Icon = link.icon; return <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs"><Icon size={14} />{link.label}</a> })}</div>
-        <div className="flex gap-3 pt-3"><button type="button" onClick={toggleLocale} className="rounded-full border border-[var(--line)] px-4 py-2 text-xs">{locale === "en" ? "Português" : "English"}</button><button type="button" onClick={toggleTheme} className="rounded-full border border-[var(--line)] px-4 py-2 text-xs">{theme === "dark" ? t.controls.light : t.controls.dark}</button></div>
+        <div className="flex items-center gap-3 pt-3">
+          <LanguageSwitch locale={locale} onToggle={toggleLocale} />
+          <ThemeSwitch theme={theme} onToggle={toggleTheme} />
+        </div>
       </motion.nav>}</AnimatePresence>
     </header>
     <div className="side-scroll-indicator" aria-hidden="true"><span>SCROLL</span><i /></div>
