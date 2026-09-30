@@ -105,9 +105,9 @@ Strong existing controls include server-side authorization, database RLS, restri
 
 Project, GitHub, image, social and contact fields now validate their expected formats before persistence, with public-link render guards as defense in depth.
 
-### Medium: Authentication rate limiting
+### Completed: Authentication rate limiting
 
-Add an application-level rate-limiting or bot-protection layer around login if the threat model requires it. Supabase Auth remains the identity provider.
+Supabase Auth provides the login rate-limiting boundary. Local development is configured to allow 10 sign-in/sign-up requests per 5 minutes per IP. The dashboard handles HTTP 429 responses with a generic retry message rather than exposing provider-specific details.\n\nFor production, configure the same `sign_in_sign_ups` limit in Supabase Dashboard under Authentication > Rate Limits. The repository configuration is local-only and does not change the hosted project settings.
 
 ### Medium: RLS integration tests
 
