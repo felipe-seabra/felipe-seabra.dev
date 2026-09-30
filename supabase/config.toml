@@ -23,6 +23,5 @@ enabled = false
 [auth]
 enabled = true
 site_url = "http://127.0.0.1:54321"
-disable_signup = true
 [auth.rate_limit]
 sign_in_sign_ups = 10
