@@ -11,6 +11,7 @@ import {Hero} from "./Hero";
 import {PortfolioSections} from "./PortfolioSections";
 import {BackToTop} from "./BackToTop";
 import type {ProjectItem,SocialLink,Theme,TimelineItem} from "./types";
+import {isValidEmail,isValidHttpUrl} from "@/lib/url-validation";
 
 export function PortfolioPageClient({locale,content,timeline,projects,social}:{locale:Locale;content:Record<string,string>;timeline:readonly TimelineItem[];projects:readonly ProjectItem[];social:{github:string;linkedin:string}}){
   const [theme,setTheme]=useState<Theme>("dark");
@@ -46,13 +47,15 @@ export function PortfolioPageClient({locale,content,timeline,projects,social}:{l
     ["contact","#contact",text("nav","contact",t.nav.contact)],
   ] as const;
   const socialLinks=[
-    social.github?{label:"GitHub",href:social.github,icon:Github}:null,
-    social.linkedin?{label:"LinkedIn",href:social.linkedin,icon:Linkedin}:null,
+    isValidHttpUrl(social.github)?{label:"GitHub",href:social.github,icon:Github}:null,
+    isValidHttpUrl(social.linkedin)?{label:"LinkedIn",href:social.linkedin,icon:Linkedin}:null,
   ].filter(Boolean) as SocialLink[];
+  const talkEmail=text("contact","email","hello@felipeseabra.com.br");
+  const safeTalkEmail=isValidEmail(talkEmail)?talkEmail:"hello@felipeseabra.com.br";
 
   return <main id="top" className="overflow-hidden bg-[var(--bg)] text-[var(--fg)] transition-colors duration-500">
     <SmoothScroll/><ScrollProgress/><InteractiveCursor/>
-    <Header locale={locale} theme={theme} open={open} onMenuToggle={()=>setOpen(value=>!value)} onThemeToggle={toggleTheme} navItems={navItems} socialLinks={socialLinks} text={text} talkEmail={text("contact","email","hello@felipeseabra.com.br")}/>
+    <Header locale={locale} theme={theme} open={open} onMenuToggle={()=>setOpen(value=>!value)} onThemeToggle={toggleTheme} navItems={navItems} socialLinks={socialLinks} text={text} talkEmail={safeTalkEmail}/>
     <div className="side-scroll-indicator" aria-hidden="true"><span>SCROLL</span><i/></div>
     <Hero text={text} location={text("hero","location",t.hero.location)} eyebrow={text("hero","eyebrow",t.hero.eyebrow)} title={text("hero","title",t.hero.title)} intro={text("hero","intro",t.hero.intro)} cta={text("hero","cta",t.hero.cta)}/>
     <PortfolioSections timeline={timeline} projectItems={projects} cms={content} text={text} t={t} socialLinks={socialLinks}/>

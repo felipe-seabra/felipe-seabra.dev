@@ -107,6 +107,94 @@ describe("Dashboard Server Actions Authorization", () => {
   });
 });
 
+describe("Dashboard CMS URL Validation", () => {
+  it("rejects dangerous project URL protocols before persistence", async () => {
+    mockAdminSession();
+
+    const res = await saveProjectAction({
+      slug: "malicious-project",
+      title: "Malicious Project",
+      category: "Test",
+      description: "Desc",
+      stack: [],
+      href: "javascript:alert(1)",
+      github_url: null,
+      image_url: null,
+      featured: false,
+      published: true,
+      sort_order: 1,
+    });
+
+    expect(res.success).toBe(false);
+    expect(res.error).toBe("Invalid project URL.");
+    expect(prisma.project.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-http GitHub and image URLs before persistence", async () => {
+    mockAdminSession();
+
+    const githubRes = await saveProjectAction({
+      slug: "invalid-github",
+      title: "Invalid GitHub",
+      category: "Test",
+      description: "Desc",
+      stack: [],
+      href: "#contact",
+      github_url: "javascript:alert(1)",
+      image_url: null,
+      featured: false,
+      published: true,
+      sort_order: 1,
+    });
+
+    expect(githubRes.success).toBe(false);
+    expect(githubRes.error).toBe("Invalid GitHub URL.");
+    expect(prisma.project.create).not.toHaveBeenCalled();
+
+    mockAdminSession();
+
+    const imageRes = await saveProjectAction({
+      slug: "invalid-image",
+      title: "Invalid Image",
+      category: "Test",
+      description: "Desc",
+      stack: [],
+      href: "#contact",
+      github_url: null,
+      image_url: "data:text/html,<script>alert(1)</script>",
+      featured: false,
+      published: true,
+      sort_order: 1,
+    });
+
+    expect(imageRes.success).toBe(false);
+    expect(imageRes.error).toBe("Invalid image URL.");
+    expect(prisma.project.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects dangerous social URLs and invalid contact email", async () => {
+    mockAdminSession();
+
+    const socialRes = await saveContentAction([
+      { locale: "en", section: "social", field: "github", value: "javascript:alert(1)" },
+    ]);
+
+    expect(socialRes.success).toBe(false);
+    expect(socialRes.error).toBe("Invalid github URL.");
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+
+    mockAdminSession();
+
+    const emailRes = await saveContentAction([
+      { locale: "en", section: "contact", field: "email", value: "javascript:alert(1)" },
+    ]);
+
+    expect(emailRes.success).toBe(false);
+    expect(emailRes.error).toBe("Invalid contact email.");
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+});
+
 describe("Dashboard Error Handling and Locale Validation", () => {
   it("returns safe user-facing message and hides raw Prisma error when project save fails", async () => {
     mockAdminSession();

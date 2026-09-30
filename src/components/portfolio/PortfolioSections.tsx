@@ -5,6 +5,7 @@ import {ArrowUpRight} from "lucide-react";
 import {Reveal} from "./Reveal";
 import type {PortfolioText,ProjectItem,SocialLink,TimelineItem} from "./types";
 import {copy} from "@/lib/i18n";
+import {isValidUrl} from "@/lib/url-validation";
 
 type Copy=(typeof copy)[keyof typeof copy];
 
@@ -22,7 +23,7 @@ export function PortfolioSections({timeline,projectItems,cms,text,t,socialLinks}
 
     <section id="work" className="relative px-5 py-24 md:px-8 md:py-36"><motion.div style={{ x: useTransform(useScroll().scrollYProgress, [.15, .55], [-80, 80]), opacity: useTransform(useScroll().scrollYProgress, [.15, .3, .55], [0, .22, 0]) }} className="pointer-events-none absolute right-[-10%] top-1/3 h-72 w-72 rounded-full bg-[var(--accent)] blur-[100px]" />
       <div className="mx-auto max-w-[1400px]"><Reveal><div className="mb-14 max-w-3xl"><span className="font-mono text-xs uppercase tracking-[.2em] text-[var(--faint)]">{text("work", "label", t.work.label)}</span><h2 className="mt-5 text-5xl tracking-[-.06em] md:text-8xl">{text("work", "title", t.work.title)}</h2><p className="mt-7 text-base leading-7 text-[var(--muted)] md:text-lg">{text("work", "intro", t.work.intro)}</p></div></Reveal>
-        {projectItems.map((project, index) => <Reveal key={project.id ?? project.title} delay={index * .05}><motion.a href={project.href} target={project.href.startsWith("http") ? "_blank" : undefined} rel={project.href.startsWith("http") ? "noreferrer" : undefined} whileHover={{ x: 10, y: -5, scale: 1.01 }} transition={{ duration: .35, ease: [.22, 1, .36, 1] }} className="group grid gap-5 rounded-xl border-t border-[var(--line)] py-8 md:grid-cols-[70px_1fr_280px_70px] md:items-center">
+        {projectItems.map((project, index) => <Reveal key={project.id ?? project.title} delay={index * .05}><motion.a href={isValidUrl(project.href,{allowHash:true}) ? project.href : "#contact"} target={isValidUrl(project.href,{allowHash:true}) && project.href.startsWith("http") ? "_blank" : undefined} rel={isValidUrl(project.href,{allowHash:true}) && project.href.startsWith("http") ? "noreferrer" : undefined} whileHover={{ x: 10, y: -5, scale: 1.01 }} transition={{ duration: .35, ease: [.22, 1, .36, 1] }} className="group grid gap-5 rounded-xl border-t border-[var(--line)] py-8 md:grid-cols-[70px_1fr_280px_70px] md:items-center">
           <span className="font-mono text-xs text-[var(--faint)]">{project.number ?? String(index + 1).padStart(2, "0")}</span><div><span className="text-xs uppercase tracking-[.18em] text-[var(--faint)]">{project.category}</span><h3 className="mt-2 text-3xl tracking-[-.04em] md:text-5xl">{project.title}</h3><div className="mt-5 flex flex-wrap gap-2">{project.stack.map(tag => <span key={tag} className="font-mono text-[9px] text-[var(--faint)]">{tag}</span>)}</div></div><p className="text-sm leading-6 text-[var(--muted)]">{project.description}</p><span className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] transition-transform duration-300 group-hover:rotate-45"><ArrowUpRight size={17} /></span>
         </motion.a></Reveal>)}
       </div>

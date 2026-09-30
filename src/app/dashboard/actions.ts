@@ -3,6 +3,7 @@
 import {createClient} from "@/lib/supabase/server";
 import {prisma} from "@/lib/prisma";
 import type {Locale} from "@/lib/i18n";
+import {isValidEmail,isValidHttpUrl,isValidUrl} from "@/lib/url-validation";
 
 function slugify(value: string) {
   return value
@@ -184,15 +185,31 @@ export async function saveProjectAction(data: Omit<DashboardProject, "id"> & { i
     return { success: false, error: "Title is required.", data: null };
   }
 
+  const href = data.href?.trim() || "#contact";
+  const githubUrl = data.github_url?.trim() || null;
+  const imageUrl = data.image_url?.trim() || null;
+
+  if (!isValidUrl(href, {allowHash: true})) {
+    return { success: false, error: "Invalid project URL.", data: null };
+  }
+
+  if (githubUrl && !isValidHttpUrl(githubUrl)) {
+    return { success: false, error: "Invalid GitHub URL.", data: null };
+  }
+
+  if (imageUrl && !isValidHttpUrl(imageUrl)) {
+    return { success: false, error: "Invalid image URL.", data: null };
+  }
+
   try {
     const basePayload = {
       title: data.title.trim(),
       category: data.category ?? "",
       description: data.description ?? "",
       stack: Array.isArray(data.stack) ? data.stack : [],
-      href: data.href ?? "#contact",
-      github_url: data.github_url || null,
-      image_url: data.image_url || null,
+      href,
+      github_url: githubUrl,
+      image_url: imageUrl,
       featured: Boolean(data.featured),
       published: Boolean(data.published),
       sort_order: Number.isFinite(data.sort_order) ? data.sort_order : 0,
@@ -352,6 +369,14 @@ export async function saveContentAction(rows: DashboardContentRow[]) {
   for (const row of rows) {
     if (!isValidLocale(row.locale)) {
       return { success: false, error: "Invalid locale. Must be 'en' or 'pt'." };
+    }
+
+    if (row.section === "social" && (row.field === "github" || row.field === "linkedin") && !isValidHttpUrl(row.value)) {
+      return { success: false, error: `Invalid ${row.field} URL.` };
+    }
+
+    if (row.section === "contact" && row.field === "email" && !isValidEmail(row.value)) {
+      return { success: false, error: "Invalid contact email." };
     }
   }
 
