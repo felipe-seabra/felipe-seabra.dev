@@ -67,7 +67,7 @@ Prisma parameterizes database operations, reducing SQL injection risk.
 
 The audited application surface does not use dangerouslySetInnerHTML.
 
-CMS URL fields remain an input-hardening consideration. URL protocol validation should reject dangerous schemes such as javascript:, data: and vbscript:.
+CMS URL fields are validated before persistence. Project URLs allow only http:, https:, mailto: and # anchors; GitHub, image and social URLs are restricted to http:/https:. Contact email values are validated before persistence. Public project and social links are also guarded at render time as defense in depth.
 
 ## Automated Security Controls
 
@@ -89,6 +89,7 @@ Current tests cover:
 - admin access
 - controlled database errors
 - locale validation
+- CMS URL protocol validation and contact email validation
 
 These tests mock Prisma and Supabase boundaries. They do not constitute a full PostgreSQL RLS integration suite.
 
@@ -100,9 +101,9 @@ Strong existing controls include server-side authorization, database RLS, restri
 
 ## Hardening Backlog
 
-### Medium: CMS URL validation
+### Completed: CMS URL validation
 
-Validate href, github_url and image_url before persistence. Allow only expected URL protocols and formats.
+Project, GitHub, image, social and contact fields now validate their expected formats before persistence, with public-link render guards as defense in depth.
 
 ### Medium: Authentication rate limiting
 
