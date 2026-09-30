@@ -69,7 +69,7 @@ Detailed architecture: docs/ARCHITECTURE.md
 
 ~~~text
 .
-├── .github/workflows/ci.yml       # CI quality gates
+├── .github/workflows/ci.yml       # CI quality gates and deployment
 ├── prisma/
 │   ├── schema.prisma              # Database models
 │   ├── seed.ts                    # Seed data
@@ -89,7 +89,6 @@ Detailed architecture: docs/ARCHITECTURE.md
 ├── tests/                         # Automated tests
 ├── proxy.ts                       # Request/session/locale handling
 └── package.json
-~~~
 
 ## Local Development
 
@@ -133,7 +132,7 @@ npm run build
 npm audit --audit-level=high
 ~~~
 
-CI enforces Lint, Typecheck, Tests and Security Audit, followed by Build.
+CI enforces Lint, Typecheck, Tests, RLS Integration Tests and Security Audit, followed by Build. Successful pull requests receive a Vercel Preview deployment. Successful pushes to main receive a Vercel Production deployment.
 
 ## CMS
 
@@ -227,9 +226,15 @@ Pull Request
     ↓
 CI quality gates
     ↓
+Vercel Preview deployment
+    ↓
 manual review
     ↓
 manual merge to main
+    ↓
+CI quality gates
+    ↓
+Vercel Production deployment
 ~~~
 
 Required checks:
@@ -237,6 +242,7 @@ Required checks:
 - Lint
 - Typecheck
 - Tests
+- RLS Integration Tests
 - Security Audit
 - Build
 
@@ -255,6 +261,12 @@ Before deployment:
 5. Run the full quality gate.
 6. Deploy the protected main branch.
 7. Verify public routes, CMS, sitemap and robots endpoints.
+
+Vercel Git deployments are disabled. GitHub Actions controls deployments after the required CI gates pass:
+
+- Pull requests from this repository deploy to a Vercel Preview environment.
+- Pushes to main deploy to Vercel Production.
+- A failed required check prevents the corresponding deployment.
 
 See docs/DEPLOYMENT.md.
 
