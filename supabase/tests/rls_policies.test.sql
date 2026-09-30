@@ -41,7 +41,7 @@ select is((select count(*)::int from public.projects where slug = 'rls-test-publ
 set local role authenticated;
 set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
 
-select is( (select count(*)::int from public.projects where slug like 'rls-test-%'), 2, 'non-admin sees only published projects');
+select is( (select count(*)::int from public.projects where slug like 'rls-test-%'), 1, 'non-admin sees only published projects');
 select is( (select count(*)::int from public.timeline_entries where title = 'Published timeline'), 1, 'non-admin sees only published timeline entries');
 select is( (select count(*)::int from public.site_content where section = 'rls-test'), 1, 'non-admin can read site content');
 select throws_ok($$insert into public.projects (slug, title) values ('rls-user-insert', 'Denied')$$, '42501', null, 'non-admin cannot insert projects');
@@ -58,7 +58,7 @@ set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
 
 select is( (select count(*)::int from public.projects where slug like 'rls-test-%'), 2, 'admin sees published and draft projects');
 select is( (select count(*)::int from public.timeline_entries where title in ('Published timeline', 'Draft timeline')), 2, 'admin sees published and draft timeline entries');
-select lives_ok($$insert into public.projects (slug, title, href) values ('rls-admin-insert', 'Admin project')$$, 'admin can insert projects');
+select lives_ok($$insert into public.projects (slug, title, href) values ('rls-admin-insert', 'Admin project', '#contact')$$, 'admin can insert projects');
 select lives_ok($$update public.projects set title = 'Admin updated' where slug = 'rls-test-draft'$$, 'admin can update projects');
 select lives_ok($$delete from public.projects where slug = 'rls-admin-insert'$$, 'admin can delete projects');
 select lives_ok($$insert into public.timeline_entries (chapter, period, title, body) values ('Admin', '2026', 'Admin entry', 'Created by admin')$$, 'admin can insert timeline entries');
