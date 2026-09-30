@@ -1,0 +1,25 @@
+project_id = "felipe-seabra-dev"
+
+[api]
+enabled = true
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = false
+
+[storage]
+enabled = false
+
+[analytics]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:54321"

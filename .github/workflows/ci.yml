@@ -44,6 +44,18 @@ jobs:
           node-version: 24
       - run: npm install
       - run: npm run test
+  rls:
+    name: RLS Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start -x studio,vector,logflare,inbucket,storage-api,imgproxy
+      - run: supabase test db
+      - if: always()
+        run: supabase stop
   audit:
     name: Security Audit
     runs-on: ubuntu-latest
