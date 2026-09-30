@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(25);
+select plan(26);
 
 -- Local auth fixtures. Supabase's Auth schema is available in the local stack.
 insert into auth.users (id, email)
