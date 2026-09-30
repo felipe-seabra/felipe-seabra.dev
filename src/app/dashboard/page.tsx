@@ -116,7 +116,7 @@ export default function DashboardPage(){
     if(!supabase)return;
     notify("Signing in...");
     const{error}=await supabase.auth.signInWithPassword({email,password});
-    if(error){notify(error.message,"error");return}
+    if(error){\n      notify(error.status===429?"Too many sign-in attempts. Please wait a few minutes and try again.":error.message,"error");\n      return;\n    }
     setEmail("");setPassword("");
     window.location.reload();
   };
