@@ -9,11 +9,12 @@ import {isValidHttpUrl} from "@/lib/url-validation";
 
 export function Header({locale,theme,open,onMenuToggle,onThemeToggle,navItems,socialLinks,text,talkEmail}:{locale:Locale;theme:Theme;open:boolean;onMenuToggle:()=>void;onThemeToggle:()=>void;navItems:readonly (readonly [string,string,string])[];socialLinks:SocialLink[];text:PortfolioText;talkEmail:string}){
   const menuButtonRef=useRef<HTMLButtonElement>(null);
+  const mobileMenuRef=useRef<HTMLElement>(null);
 
   useEffect(()=>{
     if(!open)return;
     const handlePointerDown=(event:PointerEvent)=>{
-      if(event.target instanceof Node&&menuButtonRef.current?.contains(event.target))return;
+      if(event.target instanceof Node&&(menuButtonRef.current?.contains(event.target)||mobileMenuRef.current?.contains(event.target)))return;
       onMenuToggle();
     };
     const handleKeyDown=(event:KeyboardEvent)=>{
@@ -40,8 +41,8 @@ export function Header({locale,theme,open,onMenuToggle,onThemeToggle,navItems,so
       <button ref={menuButtonRef} type="button" aria-label={open?"Close menu":"Open menu"} onClick={onMenuToggle} className="md:hidden">{open?<X size={20}/>:<Menu size={20}/>}</button>
     </div>
     <AnimatePresence>
-      {open&&<motion.nav initial={{opacity:0,y:-12}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-12}} className="mx-auto mt-2 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-2xl md:hidden">
-        {navItems.map(([key,href,label])=><a onClick={onMenuToggle} key={key} href={href} className="block border-b border-[var(--line)] py-4 text-lg">{label}</a>)}
+      {open&&<motion.nav initial={{opacity:0,y:-12}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-12}} ref={mobileMenuRef} onClick={onMenuToggle} className="mx-auto mt-2 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-2xl md:hidden">
+        {navItems.map(([key,href,label])=><a key={key} href={href} className="block border-b border-[var(--line)] py-4 text-lg">{label}</a>)}
         <div className="flex gap-3 pt-5">{socialLinks.map(({label,href,icon:Icon})=><a key={label} href={isValidHttpUrl(href) ? href : "#contact"} target={isValidHttpUrl(href) ? "_blank" : undefined} rel={isValidHttpUrl(href) ? "noreferrer" : undefined} className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-xs"><Icon size={14}/>{label}</a>)}</div>
         <div className="flex items-center gap-3 pt-3"><LanguageSwitch locale={locale}/><ThemeSwitch theme={theme} onToggle={onThemeToggle}/></div>
       </motion.nav>}
