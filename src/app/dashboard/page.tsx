@@ -41,7 +41,7 @@ function fallback(locale:Locale,section:string,field:string){
   if(section==="about"){const values:Record<string,string>={label:t.about.label,title:t.about.title,body:t.about.body,experience:t.about.experience};return values[field]??"";}
   if(section==="contact"){const values:Record<string,string>={label:t.contact.label,title:t.contact.title,body:t.contact.body,cta:t.contact.cta,email:"hello@felipeseabra.com.br"};return values[field]??"";}
   if(section==="social"){const values:Record<string,string>={github:"https://github.com/felipe-seabra",linkedin:"https://www.linkedin.com/in/felipe-seabra/"};return values[field]??"";}
-  if(section==="seo")return field==="title"?"Felipe Seabra — Front-End Developer":"Portfolio and career timeline of Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.";
+  if(section==="seo")return field==="title"?"Felipe Seabra | Front-End Developer":"Portfolio and career timeline of Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.";
   return "";
 }
 

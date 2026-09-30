@@ -35,7 +35,7 @@ export async function getPortfolioData(locale:Locale):Promise<PortfolioData>{
         linkedin:content["social.linkedin"]||"https://www.linkedin.com/in/felipe-seabra/",
       },
       seo:{
-        title:content["seo.title"]||(locale==="pt"?"Felipe Seabra — Desenvolvedor Front-End":"Felipe Seabra — Front-End Developer"),
+        title:content["seo.title"]||(locale==="pt"?"Felipe Seabra | Desenvolvedor Front-End":"Felipe Seabra | Front-End Developer"),
         description:content["seo.description"]||(locale==="pt"?"Portfólio e trajetória profissional de Felipe Seabra, Desenvolvedor Full-Stack com foco em Front-End, baseado em Dublin, Irlanda.":"Portfolio and career timeline of Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland."),
       },
     };
@@ -47,7 +47,7 @@ export async function getPortfolioData(locale:Locale):Promise<PortfolioData>{
       projects:fallbackProjects,
       social:{github:"https://github.com/felipe-seabra",linkedin:"https://www.linkedin.com/in/felipe-seabra/"},
       seo:{
-        title:locale==="pt"?"Felipe Seabra — Desenvolvedor Front-End":"Felipe Seabra — Front-End Developer",
+        title:locale==="pt"?"Felipe Seabra | Desenvolvedor Front-End":"Felipe Seabra | Front-End Developer",
         description:locale==="pt"?"Portfólio e trajetória profissional de Felipe Seabra, Desenvolvedor Full-Stack com foco em Front-End, baseado em Dublin, Irlanda.":"Portfolio and career timeline of Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.",
       },
     };

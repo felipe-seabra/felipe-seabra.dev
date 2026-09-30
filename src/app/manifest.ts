@@ -2,7 +2,7 @@ import type {MetadataRoute} from "next";
 
 export default function manifest():MetadataRoute.Manifest{
   return {
-    name:"Felipe Seabra — Front-End Developer",
+    name:"Felipe Seabra | Front-End Developer",
     short_name:"Felipe Seabra",
     description:"Portfolio and career timeline of Felipe Seabra.",
     start_url:"/",

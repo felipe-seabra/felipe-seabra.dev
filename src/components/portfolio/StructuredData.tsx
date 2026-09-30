@@ -19,7 +19,7 @@ export function StructuredData({locale,socialLinks}:{locale:Locale;socialLinks:{
     "@type":"ProfilePage",
     "@id":url+"#profile",
     url,
-    name:isPortuguese?"Felipe Seabra — Desenvolvedor Front-End":"Felipe Seabra — Front-End Developer",
+    name:isPortuguese?"Felipe Seabra | Desenvolvedor Front-End":"Felipe Seabra | Front-End Developer",
     inLanguage:locale,
     mainEntity:person,
   };
