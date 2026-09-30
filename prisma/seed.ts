@@ -112,7 +112,7 @@ const initialSiteContent = [
     locale: "en",
     section: "seo",
     field: "title",
-    value: "Felipe Seabra — Front-End Developer",
+    value: "Felipe Seabra | Front-End Developer",
   },
   {
     locale: "en",
@@ -125,7 +125,7 @@ const initialSiteContent = [
     locale: "pt",
     section: "seo",
     field: "title",
-    value: "Felipe Seabra — Desenvolvedor Front-End",
+    value: "Felipe Seabra | Desenvolvedor Front-End",
   },
   {
     locale: "pt",

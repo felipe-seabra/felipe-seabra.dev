@@ -4,10 +4,10 @@ import {PortfolioPageClient} from "@/components/portfolio/PortfolioPageClient";
 import {getPortfolioData,siteMetadata} from "@/lib/portfolio-data";
 
 const ogImage={
-  url:"https://felipeseabra.com.br/og-image.svg",
+  url:"https://felipeseabra.com.br/og-image.png",
   width:1200,
   height:630,
-  alt:"Felipe Seabra — Front-End focused Full-Stack Developer",
+  alt:"Felipe Seabra | Front-End focused Full-Stack Developer",
 };
 
 export async function generateMetadata():Promise<Metadata>{

@@ -2,13 +2,13 @@ import type {Metadata,Viewport} from "next";
 import "./globals.css";
 
 const siteUrl="https://felipeseabra.com.br";
-const defaultTitle="Felipe Seabra — Front-End Developer";
+const defaultTitle="Felipe Seabra | Front-End Developer";
 const defaultDescription="Portfolio and career timeline of Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.";
 const ogImage={
-  url:`${siteUrl}/og-image.svg`,
+  url:`${siteUrl}/og-image.png`,
   width:1200,
   height:630,
-  alt:"Felipe Seabra — Front-End focused Full-Stack Developer",
+  alt:"Felipe Seabra | Front-End focused Full-Stack Developer",
 };
 
 export const metadata:Metadata={

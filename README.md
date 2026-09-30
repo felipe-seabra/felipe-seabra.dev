@@ -1,4 +1,4 @@
-# Felipe Seabra — Portfolio
+# Felipe Seabra | Portfolio
 
 Personal portfolio and content-managed career timeline for Felipe Seabra, a Front-End focused Full-Stack Developer based in Dublin, Ireland.
 
@@ -270,4 +270,6 @@ See docs/DEPLOYMENT.md.
 
 ## License
 
-This repository contains a personal portfolio. Unless a separate license is added, the source code and content remain the property of Felipe Seabra.
+This repository contains a personal portfolio. The source code of this project is licensed under the MIT License.
+
+Portfolio content, personal information, images, branding, and other personal assets are not included in the MIT License and may not be reused without permission.
