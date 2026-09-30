@@ -32,18 +32,9 @@ set local role anon;
 select is( (select count(*)::int from public.projects), 1, 'anon sees only published projects');
 select is( (select count(*)::int from public.timeline_entries), 1, 'anon sees only published timeline entries');
 select is( (select count(*)::int from public.site_content where section = 'rls-test'), 1, 'anon can read site content');
-select throws_ok(
-  $$insert into public.projects (slug, title) values ('rls-anon-insert', 'Denied')$$,
-  '42501', null, 'anon cannot insert projects'
-);
-select throws_ok(
-  $$update public.projects set title = 'Denied' where slug = 'rls-published'$$,
-  '42501', null, 'anon cannot update projects'
-);
-select throws_ok(
-  $$delete from public.projects where slug = 'rls-published'$$,
-  '42501', null, 'anon cannot delete projects'
-);
+select throws_ok($$insert into public.projects (slug, title) values ('rls-anon-insert', 'Denied')$$, '42501', null, 'anon cannot insert projects');
+select throws_ok($$update public.projects set title = 'Denied' where slug = 'rls-published'$$, '42501', null, 'anon cannot update projects');
+select throws_ok($$delete from public.projects where slug = 'rls-published'$$, '42501', null, 'anon cannot delete projects');
 
 -- Authenticated non-admin access: public reads remain filtered, writes are denied.
 set local role authenticated;
@@ -52,58 +43,29 @@ set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
 select is( (select count(*)::int from public.projects), 1, 'non-admin sees only published projects');
 select is( (select count(*)::int from public.timeline_entries), 1, 'non-admin sees only published timeline entries');
 select is( (select count(*)::int from public.site_content where section = 'rls-test'), 1, 'non-admin can read site content');
-select throws_ok(
-  $$insert into public.projects (slug, title) values ('rls-user-insert', 'Denied')$$,
-  '42501', null, 'non-admin cannot insert projects'
-);
-select throws_ok(
-  $$update public.projects set title = 'Denied' where slug = 'rls-published'$$,
-  '42501', null, 'non-admin cannot update projects'
-);
-select throws_ok(
-  $$delete from public.projects where slug = 'rls-published'$$,
-  '42501', null, 'non-admin cannot delete projects'
-);
-select throws_ok(
-  $$insert into public.timeline_entries (chapter, period, title, body) values ('Test', '2026', 'Denied', 'Denied')$$,
-  '42501', null, 'non-admin cannot insert timeline entries'
-);
-select throws_ok(
-  $$update public.site_content set value = 'Denied' where section = 'rls-test'$$,
-  '42501', null, 'non-admin cannot update site content'
-);
+select throws_ok($$insert into public.projects (slug, title) values ('rls-user-insert', 'Denied')$$, '42501', null, 'non-admin cannot insert projects');
+select throws_ok($$update public.projects set title = 'Denied' where slug = 'rls-published'$$, '42501', null, 'non-admin cannot update projects');
+select throws_ok($$delete from public.projects where slug = 'rls-published'$$, '42501', null, 'non-admin cannot delete projects');
+select throws_ok($$insert into public.timeline_entries (chapter, period, title, body) values ('Test', '2026', 'Denied', 'Denied')$$, '42501', null, 'non-admin cannot insert timeline entries');
+select throws_ok($$update public.site_content set value = 'Denied' where section = 'rls-test'$$, '42501', null, 'non-admin cannot update site content');
 
 -- Admin access: full CRUD on content tables.
 set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
 
 select is( (select count(*)::int from public.projects), 2, 'admin sees published and draft projects');
 select is( (select count(*)::int from public.timeline_entries), 2, 'admin sees published and draft timeline entries');
-select lives_ok(
-  $$insert into public.projects (slug, title, href) values ('rls-admin-insert', 'Admin project')$$,
-  'admin can insert projects'
-);
-select lives_ok(
-  $$update public.projects set title = 'Admin updated' where slug = 'rls-draft'$$,
-  'admin can update projects'
-);
-select lives_ok(
-  $$delete from public.projects where slug = 'rls-admin-insert'$$,
-  'admin can delete projects'
-);
-select lives_ok(
-  $$insert into public.timeline_entries (chapter, period, title, body) values ('Admin', '2026', 'Admin entry', 'Created by admin')$$,
-  'admin can insert timeline entries'
-);
-select lives_ok(
-  $$update public.site_content set value = 'Admin updated' where section = 'rls-test'$$,
-  'admin can update site content'
-);
+select lives_ok($$insert into public.projects (slug, title, href) values ('rls-admin-insert', 'Admin project')$$, 'admin can insert projects');
+select lives_ok($$update public.projects set title = 'Admin updated' where slug = 'rls-draft'$$, 'admin can update projects');
+select lives_ok($$delete from public.projects where slug = 'rls-admin-insert'$$, 'admin can delete projects');
+select lives_ok($$insert into public.timeline_entries (chapter, period, title, body) values ('Admin', '2026', 'Admin entry', 'Created by admin')$$, 'admin can insert timeline entries');
+select lives_ok($$update public.timeline_entries set body = 'Admin updated' where title = 'Admin entry'$$, 'admin can update timeline entries');
+select lives_ok($$delete from public.timeline_entries where title = 'Admin entry'$$, 'admin can delete timeline entries');
+select lives_ok($$insert into public.site_content (locale, section, field, value) values ('en', 'rls-test-admin', 'message', 'Admin')$$, 'admin can insert site content');
+select lives_ok($$update public.site_content set value = 'Admin updated' where section = 'rls-test'$$, 'admin can update site content');
+select lives_ok($$delete from public.site_content where section = 'rls-test-admin'$$, 'admin can delete site content');
 
 -- The admins table is intentionally inaccessible to client roles.
-select throws_ok(
-  $$select count(*) from public.admins$$,
-  '42501', null, 'authenticated cannot read admins table directly'
-);
+select throws_ok($$select count(*) from public.admins$$, '42501', null, 'authenticated cannot read admins table directly');
 
 select * from finish();
 rollback;
