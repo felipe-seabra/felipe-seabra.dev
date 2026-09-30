@@ -33,8 +33,8 @@ select is( (select count(*)::int from public.projects where slug like 'rls-test-
 select is( (select count(*)::int from public.timeline_entries where title like 'Published timeline'), 1, 'anon sees only published timeline entries');
 select is( (select count(*)::int from public.site_content where section = 'rls-test'), 1, 'anon can read site content');
 select throws_ok($$insert into public.projects (slug, title) values ('rls-anon-insert', 'Denied')$$, '42501', null, 'anon cannot insert projects');
-select lives_ok($update public.projects set title = 'Denied' where slug = 'rls-test-published'$, 'anon update is filtered by RLS');
-select lives_ok($delete from public.projects where slug = 'rls-test-published'$, 'anon delete is filtered by RLS');
+select lives_ok('update public.projects set title = ''Denied'' where slug = ''rls-test-published''', 'anon update is filtered by RLS');
+select lives_ok('delete from public.projects where slug = ''rls-test-published''', 'anon delete is filtered by RLS');
 select is((select count(*)::int from public.projects where slug = 'rls-test-published' and title = 'Published project'), 1, 'anon cannot modify projects');
 
 -- Authenticated non-admin access: public reads remain filtered, writes are denied.
