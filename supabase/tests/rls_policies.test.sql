@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(28);
 
 -- Local auth fixtures. Supabase's Auth schema is available in the local stack.
 insert into auth.users (id, email)
@@ -44,10 +44,13 @@ select is( (select count(*)::int from public.projects), 1, 'non-admin sees only 
 select is( (select count(*)::int from public.timeline_entries), 1, 'non-admin sees only published timeline entries');
 select is( (select count(*)::int from public.site_content where section = 'rls-test'), 1, 'non-admin can read site content');
 select throws_ok($$insert into public.projects (slug, title) values ('rls-user-insert', 'Denied')$$, '42501', null, 'non-admin cannot insert projects');
-select throws_ok($$update public.projects set title = 'Denied' where slug = 'rls-published'$$, '42501', null, 'non-admin cannot update projects');
-select throws_ok($$delete from public.projects where slug = 'rls-published'$$, '42501', null, 'non-admin cannot delete projects');
+select lives_ok($update public.projects set title = 'Denied' where slug = 'rls-published'$, 'non-admin update statement is accepted but RLS filters it');
+select is((select title from public.projects where slug = 'rls-published'), 'Published project', 'non-admin cannot change projects');
+select lives_ok($delete from public.projects where slug = 'rls-published'$, 'non-admin delete statement is accepted but RLS filters it');
+select is((select count(*)::int from public.projects where slug = 'rls-published'), 1, 'non-admin cannot delete projects');
 select throws_ok($$insert into public.timeline_entries (chapter, period, title, body) values ('Test', '2026', 'Denied', 'Denied')$$, '42501', null, 'non-admin cannot insert timeline entries');
-select throws_ok($$update public.site_content set value = 'Denied' where section = 'rls-test'$$, '42501', null, 'non-admin cannot update site content');
+select lives_ok($update public.site_content set value = 'Denied' where section = 'rls-test'$, 'non-admin site content update is accepted but RLS filters it');
+select is((select value from public.site_content where section = 'rls-test'), 'Public content', 'non-admin cannot change site content');
 
 -- Admin access: full CRUD on content tables.
 set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
