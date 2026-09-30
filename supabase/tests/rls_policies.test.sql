@@ -29,7 +29,7 @@ values ('en', 'rls-test', 'message', 'Public content');
 -- Anonymous access: public reads only.
 set local role anon;
 
-select is( (select count(*)::int from public.projects where slug like 'rls-test-%'), 2, 'anon sees only published projects');
+select is( (select count(*)::int from public.projects where slug like 'rls-test-%'), 1, 'anon sees only published projects');
 select is( (select count(*)::int from public.timeline_entries where title like 'Published timeline'), 1, 'anon sees only published timeline entries');
 select is( (select count(*)::int from public.site_content where section = 'rls-test'), 1, 'anon can read site content');
 select throws_ok($$insert into public.projects (slug, title) values ('rls-anon-insert', 'Denied')$$, '42501', null, 'anon cannot insert projects');
