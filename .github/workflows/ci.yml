@@ -72,7 +72,7 @@ jobs:
       - run: npm audit --audit-level=high
 
   deploy:
-    name: Deploy to Vercel
+    name: Build
     if: >
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'pull_request' &&
