@@ -71,27 +71,6 @@ jobs:
       - run: npm install
       - run: npm audit --audit-level=high
 
-  migrate:
-    name: Apply Production Migrations
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs:
-      - lint
-      - typecheck
-      - test
-      - rls
-      - audit
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      DIRECT_URL: ${{ secrets.DIRECT_URL }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - run: npm install
-      - run: npx prisma migrate deploy
-
   deploy:
     name: Build
     if: >
@@ -104,7 +83,6 @@ jobs:
       - test
       - rls
       - audit
-      - migrate
     runs-on: ubuntu-latest
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -115,11 +93,22 @@ jobs:
         with:
           node-version: 24
       - run: npm install
-      - run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            npx vercel@latest pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-            npx vercel@latest deploy --yes --token=${{ secrets.VERCEL_TOKEN }}
-          else
-            npx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-            npx vercel@latest deploy --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
-          fi
+
+      - name: Apply production migrations
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: npx prisma migrate deploy
+
+      - name: Deploy to Vercel Preview
+        if: github.event_name == 'pull_request'
+        run: |
+          npx vercel@latest pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel@latest deploy --yes --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel Production
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          npx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel@latest deploy --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
